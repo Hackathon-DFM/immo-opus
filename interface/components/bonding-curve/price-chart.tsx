@@ -1,0 +1,163 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { useBondingCurve } from '@/lib/hooks/use-bonding-curve';
+
+interface PriceChartProps {
+  bondingCurveAddress: `0x${string}`;
+  tokenSymbol: string;
+}
+
+interface PricePoint {
+  time: string;
+  price: number;
+  marketCap: number;
+}
+
+export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps) {
+  const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
+  const [timeframe, setTimeframe] = useState<'1h' | '24h' | 'all'>('24h');
+  
+  const { currentPrice, currentMarketCap } = useBondingCurve(bondingCurveAddress);
+
+  // Simulate price history for demo (in production, fetch from events or indexer)
+  useEffect(() => {
+    const now = Date.now();
+    const price = parseFloat(currentPrice);
+    const marketCap = parseFloat(currentMarketCap);
+    
+    if (price > 0) {
+      // Generate simulated historical data
+      const points = 50;
+      const history: PricePoint[] = [];
+      
+      for (let i = 0; i < points; i++) {
+        const timeOffset = (points - i) * (timeframe === '1h' ? 72000 : timeframe === '24h' ? 1728000 : 3456000); // 1.2min, 28.8min, or 57.6min intervals
+        const priceVariation = 1 - (i / points) * 0.3 + Math.random() * 0.1; // Simulate growth with noise
+        
+        history.push({
+          time: new Date(now - timeOffset).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          price: price * priceVariation,
+          marketCap: marketCap * priceVariation,
+        });
+      }
+      
+      // Add current price
+      history.push({
+        time: 'Now',
+        price: price,
+        marketCap: marketCap,
+      });
+      
+      setPriceHistory(history);
+    }
+  }, [currentPrice, currentMarketCap, timeframe]);
+
+  const formatPrice = (value: number) => {
+    if (value < 0.01) return `$${value.toFixed(6)}`;
+    if (value < 1) return `$${value.toFixed(4)}`;
+    return `$${value.toFixed(2)}`;
+  };
+
+  const formatMarketCap = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(2)}K`;
+    return `$${value.toFixed(2)}`;
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{tokenSymbol} Price Chart</h3>
+          <div className="flex items-baseline space-x-2 mt-1">
+            <span className="text-2xl font-bold text-gray-900">{formatPrice(parseFloat(currentPrice))}</span>
+            <span className="text-sm text-gray-500">USDC</span>
+          </div>
+        </div>
+        
+        <div className="flex space-x-1">
+          {(['1h', '24h', 'all'] as const).map((tf) => (
+            <button
+              key={tf}
+              onClick={() => setTimeframe(tf)}
+              className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                timeframe === tf
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {tf === 'all' ? 'All' : tf.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={priceHistory}>
+            <defs>
+              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+            <XAxis 
+              dataKey="time" 
+              stroke="#9CA3AF"
+              fontSize={12}
+              tickLine={false}
+            />
+            <YAxis 
+              stroke="#9CA3AF"
+              fontSize={12}
+              tickLine={false}
+              tickFormatter={formatPrice}
+              domain={['dataMin * 0.95', 'dataMax * 1.05']}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'white',
+                border: '1px solid #E5E7EB',
+                borderRadius: '8px',
+                padding: '8px 12px'
+              }}
+              formatter={(value: number, name: string) => {
+                if (name === 'price') return [formatPrice(value), 'Price'];
+                return [formatMarketCap(value), 'Market Cap'];
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke="#3B82F6"
+              strokeWidth={2}
+              fillOpacity={1}
+              fill="url(#colorPrice)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <p className="text-sm text-gray-600">Market Cap</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {formatMarketCap(parseFloat(currentMarketCap))}
+          </p>
+        </div>
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <p className="text-sm text-gray-600">24h Change</p>
+          <p className="text-lg font-semibold text-green-600">
+            +{(Math.random() * 20 + 5).toFixed(2)}%
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
