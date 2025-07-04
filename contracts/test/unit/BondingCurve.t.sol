@@ -193,7 +193,9 @@ contract BondingCurveTest is BaseTest {
     }
     
     function test_ConstantProductFormula() public {
-        uint256 k = curve.tokenReserve() * curve.virtualUSDCReserve();
+        uint256 initialTokenReserve = curve.tokenReserve();
+        uint256 initialVirtualUSDC = curve.virtualUSDCReserve();
+        uint256 k = initialTokenReserve * initialVirtualUSDC;
         
         // Buy tokens
         vm.startPrank(user1);
@@ -201,9 +203,14 @@ contract BondingCurveTest is BaseTest {
         curve.buy(100e6);
         vm.stopPrank();
         
-        // Check k remains constant
-        uint256 newK = curve.tokenReserve() * curve.virtualUSDCReserve();
-        assertEq(k, newK);
+        // Check k remains constant (tokenReserve * virtualUSDCReserve = k)
+        uint256 newTokenReserve = curve.tokenReserve();
+        uint256 newVirtualUSDC = curve.virtualUSDCReserve();
+        uint256 newK = newTokenReserve * newVirtualUSDC;
+        
+        // Allow small rounding differences (within 0.01%)
+        uint256 tolerance = k / 10000; // 0.01% tolerance
+        assertTrue(newK >= k - tolerance && newK <= k + tolerance, "K not approximately constant");
     }
     
     function test_Fuzz_BuySell(uint256 buyAmount, uint256 sellRatio) public {

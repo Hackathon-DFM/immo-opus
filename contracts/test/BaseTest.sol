@@ -40,12 +40,12 @@ contract BaseTest is Test {
         // Deploy project factory
         factory = new ProjectFactory(address(usdc));
         
-        // Fund test accounts with USDC
-        usdc.mint(projectOwner, 1_000_000e6); // $1M
-        usdc.mint(marketMaker1, 1_000_000e6);
-        usdc.mint(marketMaker2, 1_000_000e6);
-        usdc.mint(user1, 100_000e6); // $100k
-        usdc.mint(user2, 100_000e6);
+        // Fund test accounts with USDC (increase amounts for higher target market cap)
+        usdc.mint(projectOwner, 10_000_000e6); // $10M
+        usdc.mint(marketMaker1, 10_000_000e6);
+        usdc.mint(marketMaker2, 10_000_000e6);
+        usdc.mint(user1, 2_000_000e6); // $2M
+        usdc.mint(user2, 2_000_000e6);
         
         // Label addresses for better trace
         vm.label(address(factory), "ProjectFactory");

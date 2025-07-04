@@ -32,9 +32,10 @@ contract HappyPathTest is BaseTest {
         vm.prank(marketMaker1);
         pool.borrowTokens(borrowAmount1);
         
-        // Verify MM1's CLOB adapter received tokens
+        // Verify MM1 received tokens directly (no adapter)
         address adapter1 = pool.mmToCLOBAdapter(marketMaker1);
-        assertEq(token.balanceOf(adapter1), borrowAmount1);
+        assertEq(adapter1, address(0)); // No adapter created
+        assertEq(token.balanceOf(marketMaker1), borrowAmount1);
         
         // 5. MM2 borrows tokens
         uint256 borrowAmount2 = 200_000e18;
@@ -42,8 +43,8 @@ contract HappyPathTest is BaseTest {
         pool.borrowTokens(borrowAmount2);
         
         // 6. Simulate MM1 trading (profit scenario)
-        vm.prank(adapter1);
-        token.transfer(marketMaker1, borrowAmount1 + 10_000e18); // 10k profit
+        // MM1 already has borrowAmount1, give them additional profit
+        deal(address(token), marketMaker1, borrowAmount1 + 10_000e18);
         
         // 7. MM1 repays with profit
         vm.startPrank(marketMaker1);
