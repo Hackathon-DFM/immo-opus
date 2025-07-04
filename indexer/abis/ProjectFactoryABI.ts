@@ -274,6 +274,12 @@ export const ProjectFactoryABI = [
         "internalType": "address"
       },
       {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
         "name": "mode",
         "type": "uint8",
         "indexed": false,

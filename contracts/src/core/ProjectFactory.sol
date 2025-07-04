@@ -110,7 +110,7 @@ contract ProjectFactory is IProjectFactory {
         // Transfer tokens to the project
         IERC20(token).safeTransfer(projectAddress, actualTokenAmount);
 
-        emit ProjectCreated(projectAddress, msg.sender, mode);
+        emit ProjectCreated(projectAddress, msg.sender, token, mode);
     }
 
     function _validateInputs(

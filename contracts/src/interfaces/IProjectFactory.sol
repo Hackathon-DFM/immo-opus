@@ -7,7 +7,7 @@ interface IProjectFactory {
         BONDING_CURVE
     }
 
-    event ProjectCreated(address indexed project, address indexed owner, PoolMode mode);
+    event ProjectCreated(address indexed project, address indexed owner, address indexed token, PoolMode mode);
     event TemplatesSet(address indexed directPoolTemplate, address indexed bondingCurveTemplate);
 
     error InvalidTokenAmount();
