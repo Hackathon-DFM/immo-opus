@@ -6,9 +6,8 @@ import {IDirectPool} from "../interfaces/IDirectPool.sol";
 import {IBondingCurve} from "../interfaces/IBondingCurve.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {ERC20Token} from "../tokens/ERC20Token.sol";
-import {DirectPool} from "./DirectPool.sol";
-import {BondingCurve} from "./BondingCurve.sol";
 
 contract ProjectFactory is IProjectFactory {
     using SafeERC20 for IERC20;
@@ -23,9 +22,25 @@ contract ProjectFactory is IProjectFactory {
     address[] public allProjects;
     
     address public usdc; // USDC address for the network
+    address public directPoolTemplate; // Template contract for DirectPool clones
+    address public bondingCurveTemplate; // Template contract for BondingCurve clones
+    
+    bool private templatesSet;
 
     constructor(address _usdc) {
         usdc = _usdc;
+    }
+    
+    // Set template contracts (can only be called once after deployment)
+    function setTemplates(address _directPoolTemplate, address _bondingCurveTemplate) external {
+        if (templatesSet) revert TemplatesAlreadySet();
+        if (_directPoolTemplate == address(0) || _bondingCurveTemplate == address(0)) revert ZeroAddress();
+        
+        directPoolTemplate = _directPoolTemplate;
+        bondingCurveTemplate = _bondingCurveTemplate;
+        templatesSet = true;
+        
+        emit TemplatesSet(_directPoolTemplate, _bondingCurveTemplate);
     }
 
     function createProject(
@@ -141,15 +156,21 @@ contract ProjectFactory is IProjectFactory {
         uint256 initialPrice,
         uint256 borrowTimeLimit
     ) private returns (address) {
-        DirectPool pool = new DirectPool();
-        pool.initialize(
+        if (!templatesSet) revert TemplatesNotSet();
+        
+        // Clone the DirectPool template
+        address poolClone = Clones.clone(directPoolTemplate);
+        
+        // Initialize the clone
+        IDirectPool(poolClone).initialize(
             msg.sender,
             token,
             initialPrice,
             borrowTimeLimit,
             tokenAmount
         );
-        return address(pool);
+        
+        return poolClone;
     }
 
     function _createBondingCurve(
@@ -158,33 +179,37 @@ contract ProjectFactory is IProjectFactory {
         uint256 targetMarketCap,
         uint256 borrowTimeLimit
     ) private returns (address) {
-        // First create the DirectPool that will receive funds after graduation
-        DirectPool directPool = new DirectPool();
+        if (!templatesSet) revert TemplatesNotSet();
         
-        // Create BondingCurve
-        BondingCurve curve = new BondingCurve();
-        curve.initialize(
+        // First create the DirectPool clone that will receive funds after graduation
+        address directPoolClone = Clones.clone(directPoolTemplate);
+        
+        // Create BondingCurve clone
+        address curveClone = Clones.clone(bondingCurveTemplate);
+        
+        // Initialize BondingCurve
+        IBondingCurve(curveClone).initialize(
             msg.sender,
             token,
-            address(directPool),
+            directPoolClone,
             targetMarketCap,
             tokenAmount
         );
         
         // Set USDC address
-        curve.setUSDC(usdc);
+        IBondingCurve(curveClone).setUSDC(usdc);
 
         // Initialize DirectPool with bonding curve as temporary owner
         // Will be transferred to project owner after graduation
-        directPool.initialize(
-            address(curve),
+        IDirectPool(directPoolClone).initialize(
+            curveClone,
             token,
             DEFAULT_INITIAL_PRICE, // Use default price for bonding curve graduation
             borrowTimeLimit,
             0 // No initial tokens, will receive after graduation
         );
 
-        return address(curve);
+        return curveClone;
     }
 
     function getProjectsByOwner(address owner) external view returns (address[] memory) {

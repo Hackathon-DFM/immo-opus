@@ -14,6 +14,8 @@ import "../src/interfaces/IProjectFactory.sol";
 contract BaseTest is Test {
     // Core contracts
     ProjectFactory public factory;
+    DirectPool public directPoolTemplate;
+    BondingCurve public bondingCurveTemplate;
     MockUSDC public usdc;
     MockCLOBDex public clobDex;
     
@@ -37,8 +39,15 @@ contract BaseTest is Test {
         // Deploy mock CLOB DEX
         clobDex = new MockCLOBDex();
         
+        // Deploy template contracts
+        directPoolTemplate = new DirectPool();
+        bondingCurveTemplate = new BondingCurve();
+        
         // Deploy project factory
         factory = new ProjectFactory(address(usdc));
+        
+        // Set templates in factory
+        factory.setTemplates(address(directPoolTemplate), address(bondingCurveTemplate));
         
         // Fund test accounts with USDC (increase amounts for higher target market cap)
         usdc.mint(projectOwner, 100_000_000e6); // $100M
@@ -49,6 +58,8 @@ contract BaseTest is Test {
         
         // Label addresses for better trace
         vm.label(address(factory), "ProjectFactory");
+        vm.label(address(directPoolTemplate), "DirectPoolTemplate");
+        vm.label(address(bondingCurveTemplate), "BondingCurveTemplate");
         vm.label(address(usdc), "USDC");
         vm.label(address(clobDex), "CLOBDex");
         vm.label(projectOwner, "ProjectOwner");
@@ -88,8 +99,6 @@ contract BaseTest is Test {
             TARGET_MARKET_CAP,
             BORROW_TIME_LIMIT
         );
-        // Set USDC address for bonding curve
-        BondingCurve(project).setUSDC(address(usdc));
         return project;
     }
     

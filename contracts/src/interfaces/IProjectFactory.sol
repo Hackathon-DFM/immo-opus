@@ -8,6 +8,7 @@ interface IProjectFactory {
     }
 
     event ProjectCreated(address indexed project, address indexed owner, PoolMode mode);
+    event TemplatesSet(address indexed directPoolTemplate, address indexed bondingCurveTemplate);
 
     error InvalidTokenAmount();
     error InvalidInitialPrice();
@@ -15,6 +16,8 @@ interface IProjectFactory {
     error InvalidTargetMarketCap();
     error ZeroAddress();
     error InvalidDescription();
+    error TemplatesNotSet();
+    error TemplatesAlreadySet();
 
     function createProject(
         bool isNewToken,

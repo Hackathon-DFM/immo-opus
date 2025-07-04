@@ -24,6 +24,8 @@ interface IBondingCurve {
         uint256 _targetMarketCap,
         uint256 _tokenAmount
     ) external;
+    
+    function setUSDC(address _usdc) external;
 
     // User Operations
     function buy(uint256 usdcAmount) external returns (uint256 tokensReceived);

@@ -152,10 +152,19 @@ contract ProjectFactoryTest is BaseTest {
     function test_MultipleProjectsByOwner() public {
         vm.startPrank(projectOwner);
         
-        // Create 3 projects
-        address project1 = createDirectPoolProject();
-        address project2 = createBondingCurveProject();
-        address project3 = createDirectPoolProject();
+        // Create 3 projects directly (without additional pranks)
+        address project1 = factory.createProject(
+            true, address(0), "Test1", "T1", "Test1", 0,
+            IProjectFactory.PoolMode.DIRECT_POOL, INITIAL_PRICE, 0, BORROW_TIME_LIMIT
+        );
+        address project2 = factory.createProject(
+            true, address(0), "Test2", "T2", "Test2", 0,
+            IProjectFactory.PoolMode.BONDING_CURVE, 0, TARGET_MARKET_CAP, BORROW_TIME_LIMIT
+        );
+        address project3 = factory.createProject(
+            true, address(0), "Test3", "T3", "Test3", 0,
+            IProjectFactory.PoolMode.DIRECT_POOL, INITIAL_PRICE, 0, BORROW_TIME_LIMIT
+        );
         
         vm.stopPrank();
         
