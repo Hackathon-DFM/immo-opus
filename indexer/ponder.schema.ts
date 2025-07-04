@@ -1,4 +1,4 @@
-import { onchainTable } from "ponder";
+import { onchainTable, relations } from "ponder";
 
 export const project = onchainTable("project", (t) => ({
   address: t.hex().primaryKey(), // Project address
@@ -46,4 +46,24 @@ export const projectOwner = onchainTable("projectOwner", (t) => ({
   projectCount: t.integer().notNull(),
   createdAt: t.integer().notNull(),
   lastUpdated: t.integer().notNull(),
+}));
+
+// Define relations
+export const projectRelations = relations(project, ({ one, many }) => ({
+  owner: one(projectOwner, {
+    fields: [project.owner],
+    references: [projectOwner.address],
+  }),
+  marketMakers: many(marketMaker),
+}));
+
+export const marketMakerRelations = relations(marketMaker, ({ one }) => ({
+  project: one(project, {
+    fields: [marketMaker.projectAddress],
+    references: [project.address],
+  }),
+}));
+
+export const projectOwnerRelations = relations(projectOwner, ({ many }) => ({
+  projects: many(project),
 }));
