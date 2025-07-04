@@ -102,10 +102,10 @@ contract BondingCurveTest is BaseTest {
     function test_PriceIncreasesWithBuys() public {
         uint256 initialPrice = curve.getCurrentPrice();
         
-        // Buy tokens
+        // Buy tokens (larger amount to see price impact)
         vm.startPrank(user1);
-        usdc.approve(address(curve), 100e6);
-        curve.buy(100e6);
+        usdc.approve(address(curve), 1000e6);
+        curve.buy(1000e6);
         vm.stopPrank();
         
         uint256 newPrice = curve.getCurrentPrice();
@@ -114,10 +114,10 @@ contract BondingCurveTest is BaseTest {
     }
     
     function test_PriceDecreasesWithSells() public {
-        // First buy
+        // First buy (larger amount)
         vm.startPrank(user1);
-        usdc.approve(address(curve), 100e6);
-        uint256 tokensBought = curve.buy(100e6);
+        usdc.approve(address(curve), 1000e6);
+        uint256 tokensBought = curve.buy(1000e6);
         
         uint256 priceAfterBuy = curve.getCurrentPrice();
         
@@ -147,7 +147,7 @@ contract BondingCurveTest is BaseTest {
     
     function test_Graduation() public {
         // Buy enough to reach target market cap
-        uint256 largeBuyAmount = 10_000e6; // $10k
+        uint256 largeBuyAmount = 100_000e6; // $100k
         
         vm.startPrank(user1);
         usdc.approve(address(curve), largeBuyAmount);
@@ -178,8 +178,8 @@ contract BondingCurveTest is BaseTest {
     function test_RevertWhen_BuyAfterGraduation() public {
         // Graduate first
         vm.startPrank(user1);
-        usdc.approve(address(curve), 10_000e6);
-        curve.buy(10_000e6);
+        usdc.approve(address(curve), 100_000e6);
+        curve.buy(100_000e6);
         vm.stopPrank();
         
         curve.graduate();
