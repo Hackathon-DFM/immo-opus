@@ -5,6 +5,7 @@ import {IDirectPool} from "../interfaces/IDirectPool.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {CLOBAdapter} from "../adapters/CLOBAdapter.sol";
 
 contract DirectPool is IDirectPool, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -25,6 +26,10 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
     
     // Track active MMs (registered and not removed)
     uint256 public activeMMs;
+    
+    // CLOB DEX and USDC addresses
+    address public clobDex;
+    address public usdc;
 
     modifier onlyPO() {
         if (msg.sender != projectOwner) revert NotProjectOwner();
@@ -56,6 +61,13 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
         borrowTimeLimit = _borrowTimeLimit;
         totalLiquidity = _tokenAmount;
         initialized = true;
+    }
+
+    // Set CLOB DEX and USDC addresses (call after deployment)
+    function setCLOBConfig(address _clobDex, address _usdc) external onlyPO {
+        require(clobDex == address(0) && usdc == address(0), "Already configured");
+        clobDex = _clobDex;
+        usdc = _usdc;
     }
 
     // MM Management Functions
@@ -92,6 +104,24 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
         emit MMsFinalized();
     }
 
+    // Create CLOB adapter for MM (optional, can be called by PO or MM)
+    function createCLOBAdapter(address mm) external {
+        if (!registeredMMs[mm]) revert NotRegisteredMM();
+        if (mmToCLOBAdapter[mm] != address(0)) revert TransferFailed(); // Already has adapter
+        require(clobDex != address(0) && usdc != address(0), "CLOB config not set");
+        
+        // Deploy new CLOB adapter for this MM
+        CLOBAdapter adapter = new CLOBAdapter(
+            mm,
+            address(this),
+            token,
+            usdc,
+            clobDex
+        );
+        
+        mmToCLOBAdapter[mm] = address(adapter);
+    }
+
     // MM Operations
     function borrowTokens(uint256 amount) external onlyRegisteredMM whenFinalized nonReentrant {
         if (amount == 0) revert TransferFailed();
@@ -115,6 +145,11 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
             : msg.sender;
         
         IERC20(token).safeTransfer(recipient, amount);
+        
+        // If sent to CLOB adapter, trigger deposit to CLOB DEX
+        if (recipient != msg.sender) {
+            CLOBAdapter(recipient).receiveTokens(amount);
+        }
         
         emit TokensBorrowed(msg.sender, amount);
     }
