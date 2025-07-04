@@ -1,20 +1,32 @@
 import { createConfig } from "ponder";
 
-import { ExampleContractAbi } from "./abis/ExampleContractAbi";
+import { ProjectFactoryABI, DirectPoolABI, BondingCurveABI } from "./abis/index.js";
 
 export default createConfig({
   chains: {
-    mainnet: {
-      id: 1,
-      rpc: process.env.PONDER_RPC_URL_1!,
+    arbitrumSepolia: {
+      id: 421614,
+      rpc: process.env.PONDER_RPC_URL_421614!,
     },
   },
   contracts: {
-    ExampleContract: {
-      chain: "mainnet",
-      abi: ExampleContractAbi,
-      address: "0x0000000000000000000000000000000000000000",
-      startBlock: 1234567,
+    ProjectFactory: {
+      chain: "arbitrumSepolia",
+      abi: ProjectFactoryABI,
+      address: "0xD9948702FF4a56EfD553Dab9b266225Dc5FBc9C2",
+      startBlock: 170171022, 
+    },
+    DirectPoolTemplate: {
+      chain: "arbitrumSepolia", 
+      abi: DirectPoolABI,
+      address: "0x782b3ad3bAE6E12389cDa5C004C05967f2DEC55b",
+      startBlock: 170170991,
+    },
+    BondingCurveTemplate: {
+      chain: "arbitrumSepolia",
+      abi: BondingCurveABI, 
+      address: "0xA3976D0bDd4714f91027c2d589B7F9419373Be60",
+      startBlock: 170171007,
     },
   },
 });

@@ -9,7 +9,8 @@
     "db": "ponder db",
     "codegen": "ponder codegen",
     "lint": "eslint .",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "extract-abis": "node scripts/extract-abis.js"
   },
   "dependencies": {
     "ponder": "^0.11.24",
