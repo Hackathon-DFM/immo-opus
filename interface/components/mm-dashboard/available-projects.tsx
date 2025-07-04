@@ -23,12 +23,12 @@ function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
   
   const { name, symbol } = useTokenInfo(tokenAddress);
 
-  const allocationFormatted = mmAllocation ? formatUnits(mmAllocation, 18) : '0';
-  const borrowedFormatted = borrowedAmount ? formatUnits(borrowedAmount, 18) : '0';
-  const availableFormatted = maxBorrowAmount ? formatUnits(maxBorrowAmount, 18) : '0';
-  const priceFormatted = initialPrice ? formatUnits(initialPrice, 6) : '0';
+  const allocationFormatted = mmAllocation ? formatUnits(mmAllocation as bigint, 18) : '0';
+  const borrowedFormatted = borrowedAmount ? formatUnits(borrowedAmount as bigint, 18) : '0';
+  const availableFormatted = maxBorrowAmount ? formatUnits(maxBorrowAmount as bigint, 18) : '0';
+  const priceFormatted = initialPrice ? formatUnits(initialPrice as bigint, 6) : '0';
 
-  const canBorrow = isRegistered && isFinalized && maxBorrowAmount > 0n;
+  const canBorrow = isRegistered && isFinalized && maxBorrowAmount > BigInt(0);
 
   return (
     <tr className="hover:bg-gray-50">

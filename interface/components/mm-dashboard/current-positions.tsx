@@ -25,11 +25,11 @@ function PositionRow({ projectAddress, onRepay }: PositionRowProps) {
   const tokenBalance = useTokenBalance(tokenAddress);
 
   // Skip if no borrowed amount
-  if (!borrowedAmount || borrowedAmount === 0n) return null;
+  if (!borrowedAmount || borrowedAmount === BigInt(0)) return null;
 
-  const borrowedFormatted = formatUnits(borrowedAmount, decimals);
-  const balanceFormatted = formatUnits(tokenBalance, decimals);
-  const priceFormatted = formatUnits(initialPrice, 6);
+  const borrowedFormatted = formatUnits(borrowedAmount as bigint, decimals);
+  const balanceFormatted = formatUnits(tokenBalance as bigint, decimals);
+  const priceFormatted = formatUnits(initialPrice as bigint, 6);
   const borrowedValue = parseFloat(borrowedFormatted) * parseFloat(priceFormatted);
 
   const timeRemainingDays = Math.floor(timeRemaining / (24 * 60 * 60));

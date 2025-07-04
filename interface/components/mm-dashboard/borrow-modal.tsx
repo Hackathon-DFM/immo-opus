@@ -29,10 +29,10 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
   const { name, symbol, decimals } = useTokenInfo(tokenAddress);
   const { borrow, isPending } = useDirectPoolBorrow(projectAddress);
 
-  const maxBorrowFormatted = formatUnits(maxBorrowAmount, decimals);
-  const allocationFormatted = formatUnits(mmAllocation, decimals);
-  const borrowedFormatted = formatUnits(borrowedAmount, decimals);
-  const priceFormatted = formatUnits(initialPrice, 6);
+  const maxBorrowFormatted = formatUnits(maxBorrowAmount as bigint, decimals);
+  const allocationFormatted = formatUnits(mmAllocation as bigint, decimals);
+  const borrowedFormatted = formatUnits(borrowedAmount as bigint, decimals);
+  const priceFormatted = formatUnits(initialPrice as bigint, 6);
   const borrowTimeDays = Number(borrowTimeLimit) / (24 * 60 * 60);
 
   useEffect(() => {

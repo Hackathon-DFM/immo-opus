@@ -25,8 +25,8 @@ export function RepayModal({ projectAddress, isOpen, onClose }: RepayModalProps)
   const { repay, isPending } = useDirectPoolRepay(projectAddress);
   const tokenBalance = useTokenBalance(tokenAddress);
 
-  const borrowedFormatted = formatUnits(borrowedAmount, decimals);
-  const balanceFormatted = formatUnits(tokenBalance, decimals);
+  const borrowedFormatted = formatUnits(borrowedAmount as bigint, decimals);
+  const balanceFormatted = formatUnits(tokenBalance as bigint, decimals);
   const timeRemainingDays = Math.floor(timeRemaining / (24 * 60 * 60));
   const timeRemainingHours = Math.floor((timeRemaining % (24 * 60 * 60)) / (60 * 60));
 

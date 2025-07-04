@@ -1,7 +1,7 @@
-import { useReadContract, useReadContracts, useContractEvent, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useMemo, useState } from 'react';
-import { directPoolAbi } from '../contracts/DirectPool';
-import { formatUnits } from 'viem';
+import DirectPoolABI from '../contracts/DirectPool.json';
+// import { formatUnits } from 'viem'; // Removed unused import
 
 export interface MarketMaker {
   address: `0x${string}`;
@@ -27,7 +27,7 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
   // Get basic pool info to calculate allocations
   const { data: poolInfo } = useReadContract({
     address: poolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI as any,
     functionName: 'getPoolInfo',
     query: {
       enabled: !!poolAddress,
@@ -40,12 +40,12 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
     contracts: [
       {
         address: poolAddress,
-        abi: directPoolAbi,
+        abi: DirectPoolABI as any,
         functionName: 'activeMMs',
       },
       {
         address: poolAddress,
-        abi: directPoolAbi,
+        abi: DirectPoolABI as any,
         functionName: 'borrowTimeLimit',
       },
     ],
@@ -54,13 +54,13 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
     },
   });
 
-  const numberOfMMs = poolInfo ? Number(poolInfo[2]) : 0;
+  const numberOfMMs = poolInfo ? Number((poolInfo as any)[2]) : 0;
   const borrowTimeLimit = poolConfig?.[1]?.result ? Number(poolConfig[1].result) : 0;
 
   // Get MM addresses by reading mmList array
   const mmListContracts = Array.from({ length: numberOfMMs }, (_, i) => ({
     address: poolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI as any,
     functionName: 'mmList',
     args: [i],
   }));
@@ -83,19 +83,19 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
       return [
         {
           address: poolAddress,
-          abi: directPoolAbi,
+          abi: DirectPoolABI as any,
           functionName: 'registeredMMs',
           args: [mmAddress],
         },
         {
           address: poolAddress,
-          abi: directPoolAbi,
+          abi: DirectPoolABI as any,
           functionName: 'borrowedAmount',
           args: [mmAddress],
         },
         {
           address: poolAddress,
-          abi: directPoolAbi,
+          abi: DirectPoolABI as any,
           functionName: 'borrowTimestamp',
           args: [mmAddress],
         },
@@ -111,21 +111,13 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
     },
   });
 
-  // Listen to MM events for real-time updates
-  const { data: mmEvents } = useContractEvent({
-    address: poolAddress,
-    abi: directPoolAbi,
-    eventName: 'MMRegistered',
-    fromBlock: 'earliest',
-    query: {
-      enabled: !!poolAddress,
-    },
-  });
+  // Note: Real-time events would go here when useContractEvent is available
+  // For now, we rely on periodic refetching of contract state
 
   // Calculate allocation per MM
   const allocationPerMM = useMemo(() => {
-    if (!poolInfo || numberOfMMs === 0) return 0n;
-    const totalLiquidity = poolInfo[0] as bigint;
+    if (!poolInfo || numberOfMMs === 0) return BigInt(0);
+    const totalLiquidity = (poolInfo as any)[0] as bigint;
     return totalLiquidity / BigInt(numberOfMMs);
   }, [poolInfo, numberOfMMs]);
 
@@ -143,14 +135,14 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
       const detailIndex = index * 3;
       
       const isRegistered = mmDetails[detailIndex]?.result as boolean;
-      const borrowedAmount = (mmDetails[detailIndex + 1]?.result as bigint) || 0n;
-      const borrowTimestamp = (mmDetails[detailIndex + 2]?.result as bigint) || 0n;
+      const borrowedAmount = (mmDetails[detailIndex + 1]?.result as bigint) || BigInt(0);
+      const borrowTimestamp = (mmDetails[detailIndex + 2]?.result as bigint) || BigInt(0);
       
       // Calculate time remaining
       let timeRemaining = 0;
       let status: MarketMaker['status'] = 'Registered';
       
-      if (borrowTimestamp > 0n) {
+      if (borrowTimestamp > BigInt(0)) {
         const borrowTime = Number(borrowTimestamp);
         const expiryTime = borrowTime + borrowTimeLimit;
         timeRemaining = (expiryTime - currentTime) / (24 * 60 * 60); // days
@@ -164,7 +156,7 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
 
       // Simplified P&L calculation (would need CLOB adapter integration for real P&L)
       // For now, simulate some P&L based on borrowed amount and time
-      const pnl = borrowedAmount > 0n ? borrowedAmount / 100n * BigInt(Math.floor(Math.random() * 10 - 3)) : 0n;
+      const pnl = borrowedAmount > BigInt(0) ? borrowedAmount / BigInt(100) * BigInt(Math.floor(Math.random() * 10 - 3)) : BigInt(0);
 
       mms.push({
         address: mmAddress,
@@ -212,7 +204,7 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
 
       await registerMM({
         address: poolAddress,
-        abi: directPoolAbi,
+        abi: DirectPoolABI as any,
         functionName: 'registerMM',
         args: [mmAddress],
       });
@@ -236,7 +228,7 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
 
       await unregisterMM({
         address: poolAddress,
-        abi: directPoolAbi,
+        abi: DirectPoolABI as any,
         functionName: 'unregisterMM',
         args: [mmAddress],
       });
@@ -260,8 +252,9 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
 
       await finalizeMMs({
         address: poolAddress,
-        abi: directPoolAbi,
+        abi: DirectPoolABI as any,
         functionName: 'finalizeMMs',
+        args: [],
       });
     } catch (error) {
       setPendingTx({
@@ -283,7 +276,7 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
 
       await emergencyWithdraw({
         address: poolAddress,
-        abi: directPoolAbi,
+        abi: DirectPoolABI as any,
         functionName: 'emergencyWithdraw',
         args: [mmAddress],
       });
@@ -300,9 +293,9 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
   return {
     marketMakers,
     isLoading: !poolInfo || (numberOfMMs > 0 && !mmDetails),
-    isFinalized: poolInfo ? (poolInfo[3] as boolean) : false,
-    totalLiquidity: poolInfo ? (poolInfo[0] as bigint) : 0n,
-    availableLiquidity: poolInfo ? (poolInfo[1] as bigint) : 0n,
+    isFinalized: poolInfo ? ((poolInfo as any)[3] as boolean) : false,
+    totalLiquidity: poolInfo ? ((poolInfo as any)[0] as bigint) : BigInt(0),
+    availableLiquidity: poolInfo ? ((poolInfo as any)[1] as bigint) : BigInt(0),
     allocationPerMM,
     pendingTransaction: pendingTx,
     

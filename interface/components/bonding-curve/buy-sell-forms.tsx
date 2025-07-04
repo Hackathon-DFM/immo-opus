@@ -31,10 +31,10 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
     const calculateOutput = async () => {
       if (activeTab === 'buy' && buyAmount && parseFloat(buyAmount) > 0) {
         const tokens = await calculateBuyReturn(buyAmount);
-        setBuyTokensOut(tokens ? formatUnits(tokens, 18) : '0');
+        setBuyTokensOut(tokens ? formatUnits(tokens as bigint, 18) : '0');
       } else if (activeTab === 'sell' && sellAmount && parseFloat(sellAmount) > 0) {
         const usdc = await calculateSellReturn(sellAmount);
-        setSellUsdcOut(usdc ? formatUnits(usdc, 6) : '0');
+        setSellUsdcOut(usdc ? formatUnits(usdc as bigint, 6) : '0');
       }
     };
     

@@ -17,13 +17,13 @@ export function useMockDirectPool(projectAddress: `0x${string}` | undefined) {
     return {
       isRegistered: false,
       isFinalized: false,
-      borrowedAmount: 0n,
-      mmAllocation: 0n,
-      maxBorrowAmount: 0n,
+      borrowedAmount: BigInt(0),
+      mmAllocation: BigInt(0),
+      maxBorrowAmount: BigInt(0),
       tokenAddress: undefined,
-      initialPrice: 0n,
-      borrowTimeLimit: 0n,
-      borrowTimestamp: 0n,
+      initialPrice: BigInt(0),
+      borrowTimeLimit: BigInt(0),
+      borrowTimestamp: BigInt(0),
       timeRemaining: 0,
     };
   }
@@ -58,8 +58,8 @@ export function useMockBondingCurve(bondingCurveAddress: `0x${string}` | undefin
       tokenReserve: '0',
       virtualUSDCReserve: '0',
       graduationProgress: 0,
-      calculateBuyReturn: async () => 0n,
-      calculateSellReturn: async () => 0n,
+      calculateBuyReturn: async () => BigInt(0),
+      calculateSellReturn: async () => BigInt(0),
     };
   }
 

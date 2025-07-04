@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
-import { useProjectsByOwner } from '../lib/hooks/use-projects';
-import { useMultipleProjectDetails } from '../lib/hooks/use-project-details';
-import { useMarketMakers } from '../lib/hooks/use-market-makers';
+import { useProjectsByOwner } from '../../lib/hooks/use-projects';
+import { useMultipleProjectDetails, ProjectDetails } from '../../lib/hooks/use-project-details';
+import { useMarketMakers } from '../../lib/hooks/use-market-makers';
 
 
 function StatusBadge({ status }: { status: string }) {
@@ -31,7 +31,7 @@ function ProjectCard({
   isLoadingDetails 
 }: { 
   project: { address: `0x${string}`; mode: 'DIRECT_POOL' | 'BONDING_CURVE' };
-  projectDetails: any;
+  projectDetails: ProjectDetails | null;
   isLoadingDetails: boolean;
 }) {
   const [showMMManagement, setShowMMManagement] = useState(false);
@@ -212,7 +212,7 @@ function ProjectCard({
 
         {/* MM List */}
         <div className="space-y-3">
-          {marketMakers.length > 0 ? marketMakers.map((mm, index) => (
+          {marketMakers.length > 0 ? marketMakers.map((mm) => (
             <div key={mm.address} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex-1">
                 <div className="flex items-center gap-3">
@@ -232,8 +232,8 @@ function ProjectCard({
                   </div>
                   <div>
                     <span className="font-medium">P&L:</span> 
-                    <span className={mm.pnl >= 0n ? 'text-green-600' : 'text-red-600'}>
-                      ${mm.pnl >= 0n ? '+' : ''}
+                    <span className={mm.pnl >= BigInt(0) ? 'text-green-600' : 'text-red-600'}>
+                      ${mm.pnl >= BigInt(0) ? '+' : ''}
                       {mm.pnl ? Number(formatUnits(mm.pnl, 6)).toLocaleString() : '0'}
                     </span>
                   </div>
@@ -286,7 +286,7 @@ function ProjectCard({
           <button className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-md hover:bg-gray-200">
             Download Report
           </button>
-          {project.poolMode === 'Bonding Curve' && project.status !== 'Graduated' && (
+          {project.mode === 'BONDING_CURVE' && status !== 'Graduated' && (
             <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
               Check Graduation
             </button>
@@ -429,7 +429,7 @@ export default function PODashboard() {
           ].map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setFilter(key as any)}
+              onClick={() => setFilter(key as 'all' | 'active' | 'mm-registration' | 'graduated')}
               className={`px-4 py-2 text-sm rounded-md font-medium ${
                 filter === key
                   ? 'bg-indigo-600 text-white'
@@ -467,7 +467,7 @@ export default function PODashboard() {
             <ProjectCard 
               key={project.address} 
               project={project}
-              projectDetails={projectDetailsMap.get(project.address)}
+              projectDetails={projectDetailsMap.get(project.address) || null}
               isLoadingDetails={isLoadingDetails}
             />
           ))

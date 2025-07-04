@@ -1,6 +1,6 @@
 import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { formatUnits, parseUnits } from 'viem';
-import { directPoolAbi } from '../contracts/DirectPool';
+import DirectPoolABI from '../contracts/DirectPool.json';
 import { erc20Abi } from 'viem';
 
 export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
@@ -9,7 +9,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read if MM is registered
   const { data: isRegistered } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'registeredMMs',
     args: address ? [address] : undefined,
     query: {
@@ -21,7 +21,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read if pool is finalized
   const { data: isFinalized } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'isFinalized',
     query: {
       enabled: !!directPoolAddress,
@@ -31,7 +31,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read borrowed amount
   const { data: borrowedAmount } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'borrowedAmount',
     args: address ? [address] : undefined,
     query: {
@@ -43,7 +43,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read MM allocation
   const { data: mmAllocation } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'getMMAllocation',
     query: {
       enabled: !!directPoolAddress,
@@ -54,7 +54,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read token address
   const { data: tokenAddress } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'token',
     query: {
       enabled: !!directPoolAddress,
@@ -64,7 +64,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read initial price
   const { data: initialPrice } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'initialPrice',
     query: {
       enabled: !!directPoolAddress,
@@ -74,7 +74,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read borrow time limit
   const { data: borrowTimeLimit } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'borrowTimeLimit',
     query: {
       enabled: !!directPoolAddress,
@@ -84,7 +84,7 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   // Read borrow timestamp
   const { data: borrowTimestamp } = useReadContract({
     address: directPoolAddress,
-    abi: directPoolAbi,
+    abi: DirectPoolABI,
     functionName: 'borrowTimestamp',
     args: address ? [address] : undefined,
     query: {
@@ -93,19 +93,19 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
   });
 
   const maxBorrowAmount = mmAllocation && borrowedAmount 
-    ? (mmAllocation > borrowedAmount ? mmAllocation - borrowedAmount : 0n)
-    : 0n;
+    ? ((mmAllocation as bigint) > (borrowedAmount as bigint) ? (mmAllocation as bigint) - (borrowedAmount as bigint) : BigInt(0))
+    : BigInt(0);
 
   return {
     isRegistered: isRegistered || false,
     isFinalized: isFinalized || false,
-    borrowedAmount: borrowedAmount || 0n,
-    mmAllocation: mmAllocation || 0n,
+    borrowedAmount: borrowedAmount || BigInt(0),
+    mmAllocation: mmAllocation || BigInt(0),
     maxBorrowAmount,
     tokenAddress: tokenAddress as `0x${string}` | undefined,
-    initialPrice: initialPrice || 0n,
-    borrowTimeLimit: borrowTimeLimit || 0n,
-    borrowTimestamp: borrowTimestamp || 0n,
+    initialPrice: initialPrice || BigInt(0),
+    borrowTimeLimit: borrowTimeLimit || BigInt(0),
+    borrowTimestamp: borrowTimestamp || BigInt(0),
     timeRemaining: borrowTimestamp && borrowTimeLimit
       ? Math.max(0, Number(borrowTimestamp) + Number(borrowTimeLimit) - Math.floor(Date.now() / 1000))
       : 0,
@@ -122,7 +122,7 @@ export function useDirectPoolBorrow(directPoolAddress: `0x${string}` | undefined
 
     return writeContractAsync({
       address: directPoolAddress,
-      abi: directPoolAbi,
+      abi: DirectPoolABI,
       functionName: 'borrowTokens',
       args: [amountBigInt],
     });
@@ -141,7 +141,7 @@ export function useDirectPoolRepay(directPoolAddress: `0x${string}` | undefined)
 
     return writeContractAsync({
       address: directPoolAddress,
-      abi: directPoolAbi,
+      abi: DirectPoolABI,
       functionName: 'repayTokens',
       args: [amountBigInt],
     });
@@ -199,5 +199,5 @@ export function useTokenBalance(tokenAddress: `0x${string}` | undefined) {
     },
   });
 
-  return balance || 0n;
+  return balance || BigInt(0);
 }

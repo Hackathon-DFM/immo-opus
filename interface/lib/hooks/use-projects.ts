@@ -34,13 +34,13 @@ export function useAllProjects() {
     contracts: allProjectAddresses
       ? (allProjectAddresses as `0x${string}`[]).map((address) => ({
           address: contractAddresses.projectFactory,
-          abi: ProjectFactoryABI,
+          abi: ProjectFactoryABI as any,
           functionName: 'getProjectMode',
           args: [address],
         }))
       : [],
     query: {
-      enabled: !!allProjectAddresses && allProjectAddresses.length > 0,
+      enabled: !!allProjectAddresses && (allProjectAddresses as `0x${string}`[]).length > 0,
     },
   });
 
@@ -88,13 +88,13 @@ export function useProjectsByOwner(ownerAddress?: `0x${string}`) {
     contracts: projectAddresses
       ? (projectAddresses as `0x${string}`[]).map((address) => ({
           address: contractAddresses.projectFactory,
-          abi: ProjectFactoryABI,
+          abi: ProjectFactoryABI as any,
           functionName: 'getProjectMode',
           args: [address],
         }))
       : [],
     query: {
-      enabled: !!projectAddresses && projectAddresses.length > 0,
+      enabled: !!projectAddresses && (projectAddresses as `0x${string}`[]).length > 0,
     },
   });
 
