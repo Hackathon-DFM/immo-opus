@@ -1,7 +1,7 @@
-import { useReadContract } from 'wagmi';
+import { useReadContract, useContractEvent, useAccount, useChainId } from 'wagmi';
+import { useMemo } from 'react';
 import { projectFactoryAbi } from '../contracts/ProjectFactory';
-
-const PROJECT_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_PROJECT_FACTORY_ADDRESS as `0x${string}`;
+import { getContractAddresses } from '../../src/config/contracts';
 
 export interface Project {
   address: `0x${string}`;
@@ -10,50 +10,81 @@ export interface Project {
   tokenAddress?: `0x${string}`;
   tokenName?: string;
   tokenSymbol?: string;
+  createdBlock?: bigint;
+  createdTxHash?: `0x${string}`;
 }
 
 export function useAllProjects() {
-  // Read all projects from factory
-  const { data: projectAddresses } = useReadContract({
-    address: PROJECT_FACTORY_ADDRESS,
+  const chainId = useChainId();
+  const contractAddresses = getContractAddresses(chainId);
+
+  // Listen to ProjectCreated events to get real-time updates
+  const { data: projectCreatedEvents } = useContractEvent({
+    address: contractAddresses.projectFactory,
     abi: projectFactoryAbi,
-    functionName: 'allProjects',
+    eventName: 'ProjectCreated',
+    fromBlock: 'earliest',
     query: {
-      enabled: !!PROJECT_FACTORY_ADDRESS,
-      refetchInterval: 60000, // Refresh every minute
+      enabled: contractAddresses.projectFactory !== '0x0000000000000000000000000000000000000000',
     },
   });
 
-  // In a real implementation, you would fetch project details for each address
-  // For now, returning mock data structure
-  const projects: Project[] = projectAddresses?.map((address, index) => ({
-    address: address as `0x${string}`,
-    owner: '0x0000000000000000000000000000000000000000' as `0x${string}`,
-    mode: index % 2 === 0 ? 'DIRECT_POOL' : 'BONDING_CURVE',
-    tokenName: `Token ${index + 1}`,
-    tokenSymbol: `TKN${index + 1}`,
-  })) || [];
+  // Transform events into project data
+  const projects: Project[] = useMemo(() => {
+    if (!projectCreatedEvents) return [];
+    
+    return projectCreatedEvents.map((event) => ({
+      address: event.args.project as `0x${string}`,
+      owner: event.args.owner as `0x${string}`,
+      mode: event.args.mode === 0 ? 'DIRECT_POOL' : 'BONDING_CURVE',
+      createdBlock: event.blockNumber,
+      createdTxHash: event.transactionHash,
+    }));
+  }, [projectCreatedEvents]);
 
   return {
     projects,
-    isLoading: !projectAddresses,
+    isLoading: !projectCreatedEvents,
   };
 }
 
-export function useProjectsByOwner(ownerAddress: `0x${string}` | undefined) {
-  const { data: projectAddresses } = useReadContract({
-    address: PROJECT_FACTORY_ADDRESS,
+export function useProjectsByOwner(ownerAddress?: `0x${string}`) {
+  const chainId = useChainId();
+  const { address: currentAddress } = useAccount();
+  const contractAddresses = getContractAddresses(chainId);
+  
+  // Use provided address or current connected address
+  const targetAddress = ownerAddress || currentAddress;
+
+  // Listen to ProjectCreated events filtered by owner
+  const { data: projectCreatedEvents } = useContractEvent({
+    address: contractAddresses.projectFactory,
     abi: projectFactoryAbi,
-    functionName: 'projectsByOwner',
-    args: ownerAddress ? [ownerAddress] : undefined,
+    eventName: 'ProjectCreated',
+    args: targetAddress ? { owner: targetAddress } : undefined,
+    fromBlock: 'earliest',
     query: {
-      enabled: !!PROJECT_FACTORY_ADDRESS && !!ownerAddress,
-      refetchInterval: 60000,
+      enabled: !!contractAddresses.projectFactory && 
+               contractAddresses.projectFactory !== '0x0000000000000000000000000000000000000000' && 
+               !!targetAddress,
     },
   });
 
+  // Transform events into project data
+  const projects: Project[] = useMemo(() => {
+    if (!projectCreatedEvents) return [];
+    
+    return projectCreatedEvents.map((event) => ({
+      address: event.args.project as `0x${string}`,
+      owner: event.args.owner as `0x${string}`,
+      mode: event.args.mode === 0 ? 'DIRECT_POOL' : 'BONDING_CURVE',
+      createdBlock: event.blockNumber,
+      createdTxHash: event.transactionHash,
+    }));
+  }, [projectCreatedEvents]);
+
   return {
-    projects: projectAddresses || [],
-    isLoading: !projectAddresses,
+    projects,
+    isLoading: !projectCreatedEvents && !!targetAddress,
   };
 }
