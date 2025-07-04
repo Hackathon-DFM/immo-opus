@@ -26,7 +26,7 @@ contract BaseTest is Test {
     
     // Test parameters
     uint256 public constant INITIAL_PRICE = 0.0001e6; // $0.0001 in USDC (6 decimals)
-    uint256 public constant TARGET_MARKET_CAP = 1000000e6; // $1,000,000 in USDC
+    uint256 public constant TARGET_MARKET_CAP = 10000000e6; // $10,000,000 in USDC
     uint256 public constant BORROW_TIME_LIMIT = 7 days;
     uint256 public constant TOKEN_SUPPLY = 1_000_000_000e18; // 1B tokens
     
@@ -41,11 +41,11 @@ contract BaseTest is Test {
         factory = new ProjectFactory(address(usdc));
         
         // Fund test accounts with USDC (increase amounts for higher target market cap)
-        usdc.mint(projectOwner, 10_000_000e6); // $10M
-        usdc.mint(marketMaker1, 10_000_000e6);
-        usdc.mint(marketMaker2, 10_000_000e6);
-        usdc.mint(user1, 2_000_000e6); // $2M
-        usdc.mint(user2, 2_000_000e6);
+        usdc.mint(projectOwner, 100_000_000e6); // $100M
+        usdc.mint(marketMaker1, 100_000_000e6);
+        usdc.mint(marketMaker2, 100_000_000e6);
+        usdc.mint(user1, 20_000_000e6); // $20M
+        usdc.mint(user2, 20_000_000e6);
         
         // Label addresses for better trace
         vm.label(address(factory), "ProjectFactory");

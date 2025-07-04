@@ -165,13 +165,9 @@ contract HappyPathTest is BaseTest {
         pool.borrowTokens(allocation / 4); // 25% of allocation
         
         // Simulate trading and partial repayments
-        address adapter1 = pool.mmToCLOBAdapter(marketMaker1);
-        address adapter2 = pool.mmToCLOBAdapter(marketMaker2);
-        address adapter3 = pool.mmToCLOBAdapter(user1);
-        
-        // MM1 makes profit and repays in full
-        vm.prank(adapter1);
-        token.transfer(marketMaker1, pool.borrowedAmount(marketMaker1) + 5_000e18);
+        // MM1 makes profit and repays in full (already has borrowed amount + profit)
+        uint256 mm1Borrowed = pool.borrowedAmount(marketMaker1);
+        deal(address(token), marketMaker1, mm1Borrowed + 5_000e18);
         
         vm.startPrank(marketMaker1);
         token.approve(address(pool), pool.borrowedAmount(marketMaker1));
@@ -182,8 +178,7 @@ contract HappyPathTest is BaseTest {
         uint256 mm2Borrowed = pool.borrowedAmount(marketMaker2);
         uint256 mm2Repay = (mm2Borrowed * 70) / 100;
         
-        vm.prank(adapter2);
-        token.transfer(marketMaker2, mm2Repay);
+        deal(address(token), marketMaker2, mm2Repay);
         
         vm.startPrank(marketMaker2);
         token.approve(address(pool), mm2Repay);
@@ -195,8 +190,7 @@ contract HappyPathTest is BaseTest {
         
         // First repayment: 30%
         uint256 firstRepay = (mm3Borrowed * 30) / 100;
-        vm.prank(adapter3);
-        token.transfer(user1, firstRepay);
+        deal(address(token), user1, firstRepay);
         
         vm.startPrank(user1);
         token.approve(address(pool), firstRepay);
@@ -205,8 +199,7 @@ contract HappyPathTest is BaseTest {
         
         // Second repayment: 40%
         uint256 secondRepay = (mm3Borrowed * 40) / 100;
-        vm.prank(adapter3);
-        token.transfer(user1, secondRepay);
+        deal(address(token), user1, firstRepay + secondRepay); // Accumulate balance
         
         vm.startPrank(user1);
         token.approve(address(pool), secondRepay);
