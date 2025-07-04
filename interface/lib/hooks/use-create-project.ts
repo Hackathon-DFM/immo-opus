@@ -1,5 +1,6 @@
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { projectFactoryAbi } from '../contracts/ProjectFactory';
+import { useWriteContract, useChainId } from 'wagmi';
+import ProjectFactoryABI from '../contracts/ProjectFactory.json';
+import { getContractAddresses } from '@/src/config/contracts';
 import { PoolMode } from '@/components/create-project/types';
 
 interface CreateProjectParams {
@@ -15,39 +16,49 @@ interface CreateProjectParams {
   borrowTimeLimit: bigint;
 }
 
-// This will be set from environment variables after deployment
-const PROJECT_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_PROJECT_FACTORY_ADDRESS as `0x${string}`;
-
 export function useCreateProject() {
+  const chainId = useChainId();
   const { writeContractAsync, data: hash, error, isError, isPending } = useWriteContract();
 
   const createProject = async (params: CreateProjectParams) => {
-    if (!PROJECT_FACTORY_ADDRESS) {
-      throw new Error('Project Factory address not configured');
+    console.log('=== CREATE PROJECT DEBUG ===');
+    console.log('Chain ID:', chainId);
+    
+    const addresses = getContractAddresses(chainId || 421614);
+    console.log('Contract addresses:', addresses);
+    
+    if (!addresses.projectFactory || addresses.projectFactory === '0x0000000000000000000000000000000000000000') {
+      throw new Error('Project Factory address not configured. Please deploy contracts first.');
     }
 
-    // For existing tokens, we'll need to handle approval first
-    // This is a simplified version - in production, check and request approval if needed
+    console.log('Creating project with params:', params);
+    console.log('Using ProjectFactory address:', addresses.projectFactory);
 
-    const tx = await writeContractAsync({
-      address: PROJECT_FACTORY_ADDRESS,
-      abi: projectFactoryAbi,
-      functionName: 'createProject',
-      args: [
-        params.isNewToken,
-        params.existingToken || '0x0000000000000000000000000000000000000000',
-        params.name || '',
-        params.symbol || '',
-        params.description || '',
-        params.tokenAmount,
-        params.mode,
-        params.initialPrice,
-        params.targetMarketCap,
-        params.borrowTimeLimit,
-      ],
-    });
+    try {
+      const tx = await writeContractAsync({
+        address: addresses.projectFactory,
+        abi: ProjectFactoryABI,
+        functionName: 'createProject',
+        args: [
+          params.isNewToken,
+          params.existingToken || '0x0000000000000000000000000000000000000000',
+          params.name || '',
+          params.symbol || '',
+          params.description || '',
+          params.tokenAmount,
+          params.mode,
+          params.initialPrice,
+          params.targetMarketCap,
+          params.borrowTimeLimit,
+        ],
+      });
 
-    return tx;
+      console.log('Transaction sent successfully:', tx);
+      return tx;
+    } catch (error) {
+      console.error('writeContractAsync failed:', error);
+      throw error;
+    }
   };
 
   return {

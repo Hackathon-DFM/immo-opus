@@ -112,17 +112,40 @@ export function ReviewSubmit({
           </div>
         )}
 
-        {transactionHash && (
+        {transactionHash && transactionStatus === 'success' && (
           <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm font-medium text-green-700 mb-2">Project created successfully!</p>
-            <a
-              href={`https://sepolia.arbiscan.io/tx/${transactionHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-green-600 hover:text-green-700 underline"
-            >
-              View transaction on Arbiscan
-            </a>
+            <p className="text-sm font-medium text-green-700 mb-2">✅ Project created successfully!</p>
+            <div className="space-y-2">
+              <p className="text-sm text-green-600">Your project has been deployed and is ready for Market Maker registration.</p>
+              <a
+                href={`https://sepolia.arbiscan.io/tx/${transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-sm text-green-600 hover:text-green-700 underline"
+              >
+                View transaction on Arbiscan →
+              </a>
+            </div>
+          </div>
+        )}
+
+        {transactionHash && transactionStatus === 'confirming' && (
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700"></div>
+              <div>
+                <p className="text-sm font-medium text-blue-700">⏳ Confirming transaction...</p>
+                <p className="text-xs text-blue-600 mt-1">Waiting for network confirmation</p>
+                <a
+                  href={`https://sepolia.arbiscan.io/tx/${transactionHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-700 underline mt-1 inline-block"
+                >
+                  View on Arbiscan
+                </a>
+              </div>
+            </div>
           </div>
         )}
 
@@ -142,7 +165,22 @@ export function ReviewSubmit({
         >
           Back
         </button>
-        {!transactionHash && (
+        {transactionStatus === 'success' ? (
+          <div className="flex space-x-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Create Another Project
+            </button>
+            <a
+              href="/po-dashboard"
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-block text-center"
+            >
+              Go to Dashboard
+            </a>
+          </div>
+        ) : !transactionHash ? (
           <button
             onClick={onSubmit}
             disabled={isSubmitting}
@@ -150,7 +188,7 @@ export function ReviewSubmit({
           >
             {isSubmitting ? 'Creating Project...' : 'Create Project'}
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );

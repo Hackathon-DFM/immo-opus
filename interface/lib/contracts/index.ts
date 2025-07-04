@@ -6,7 +6,9 @@ export { default as ERC20TokenABI } from './ERC20Token.json';
 export { default as CLOBAdapterABI } from './CLOBAdapter.json';
 export { default as MockUSDCABI } from './MockUSDC.json';
 
-export const contractAddresses = {
-  ProjectFactory: process.env.NEXT_PUBLIC_PROJECT_FACTORY_ADDRESS || '',
-  USDC: process.env.NEXT_PUBLIC_USDC_ADDRESS || '',
-} as const;
+// Import contract addresses from config
+import { getContractAddresses } from '@/src/config/contracts';
+
+export const getContractAddressesForChain = (chainId: number) => {
+  return getContractAddresses(chainId);
+};
