@@ -21,6 +21,12 @@ contract ProjectFactory is IProjectFactory {
 
     mapping(address => address[]) public projectsByOwner;
     address[] public allProjects;
+    
+    address public usdc; // USDC address for the network
+
+    constructor(address _usdc) {
+        usdc = _usdc;
+    }
 
     function createProject(
         bool isNewToken,
@@ -164,6 +170,9 @@ contract ProjectFactory is IProjectFactory {
             targetMarketCap,
             tokenAmount
         );
+        
+        // Set USDC address
+        curve.setUSDC(usdc);
 
         // Initialize DirectPool with bonding curve as temporary owner
         // Will be transferred to project owner after graduation
