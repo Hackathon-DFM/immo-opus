@@ -49,7 +49,8 @@ contract DirectPoolTest is BaseTest {
         vm.stopPrank();
     }
     
-    function testFail_RegisterMMNotOwner() public {
+    function test_RevertWhen_RegisterMMNotOwner() public {
+        vm.expectRevert();
         vm.prank(user1);
         pool.registerMM(marketMaker1);
     }
@@ -66,13 +67,14 @@ contract DirectPoolTest is BaseTest {
         vm.stopPrank();
     }
     
-    function testFail_RegisterAfterFinalized() public {
+    function test_RevertWhen_RegisterAfterFinalized() public {
         vm.startPrank(projectOwner);
         
         pool.registerMM(marketMaker1);
         pool.finalizeMMs();
         
         // Should fail
+        vm.expectRevert();
         pool.registerMM(marketMaker2);
         
         vm.stopPrank();
@@ -132,7 +134,7 @@ contract DirectPoolTest is BaseTest {
         assertEq(pool.getMaxBorrowAmount(marketMaker1), allocation - partialBorrow);
     }
     
-    function testFail_BorrowExceedsAllocation() public {
+    function test_RevertWhen_BorrowExceedsAllocation() public {
         vm.startPrank(projectOwner);
         pool.registerMM(marketMaker1);
         pool.finalizeMMs();
@@ -140,6 +142,7 @@ contract DirectPoolTest is BaseTest {
         
         uint256 allocation = pool.getMMAllocation();
         
+        vm.expectRevert();
         vm.prank(marketMaker1);
         pool.borrowTokens(allocation + 1);
     }
@@ -223,7 +226,7 @@ contract DirectPoolTest is BaseTest {
         assertEq(token.balanceOf(projectOwner), TOKEN_SUPPLY - borrowAmount);
     }
     
-    function testFail_EmergencyWithdrawBeforeExpiry() public {
+    function test_RevertWhen_EmergencyWithdrawBeforeExpiry() public {
         // Setup and borrow
         vm.startPrank(projectOwner);
         pool.registerMM(marketMaker1);
@@ -234,6 +237,7 @@ contract DirectPoolTest is BaseTest {
         pool.borrowTokens(1000e18);
         
         // Try emergency withdraw before expiry
+        vm.expectRevert();
         vm.prank(projectOwner);
         pool.emergencyWithdraw(marketMaker1);
     }

@@ -46,15 +46,17 @@ contract ERC20TokenTest is BaseTest {
         assertEq(token.allowance(address(this), user1), 0);
     }
     
-    function testFail_TransferInsufficientBalance() public {
+    function test_RevertWhen_TransferInsufficientBalance() public {
         uint256 amount = TOKEN_SUPPLY + 1;
+        vm.expectRevert();
         token.transfer(user1, amount);
     }
     
-    function testFail_TransferFromInsufficientAllowance() public {
+    function test_RevertWhen_TransferFromInsufficientAllowance() public {
         uint256 amount = 1000e18;
         token.approve(user1, amount - 1);
         
+        vm.expectRevert();
         vm.prank(user1);
         token.transferFrom(address(this), user2, amount);
     }

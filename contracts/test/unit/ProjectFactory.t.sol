@@ -93,10 +93,11 @@ contract ProjectFactoryTest is BaseTest {
         assertEq(pool.token(), address(existingToken));
     }
     
-    function testFail_CreateWithInvalidInitialPrice() public {
+    function test_RevertWhen_CreateWithInvalidInitialPrice() public {
         vm.prank(projectOwner);
         
         // Price too low (< 0.1x of default)
+        vm.expectRevert();
         factory.createProject(
             true,
             address(0),
@@ -111,10 +112,11 @@ contract ProjectFactoryTest is BaseTest {
         );
     }
     
-    function testFail_CreateWithInvalidBorrowTime() public {
+    function test_RevertWhen_CreateWithInvalidBorrowTime() public {
         vm.prank(projectOwner);
         
         // Time too short (< 1 day)
+        vm.expectRevert();
         factory.createProject(
             true,
             address(0),
@@ -129,9 +131,10 @@ contract ProjectFactoryTest is BaseTest {
         );
     }
     
-    function testFail_CreateBondingCurveWithZeroTargetMarketCap() public {
+    function test_RevertWhen_CreateBondingCurveWithZeroTargetMarketCap() public {
         vm.prank(projectOwner);
         
+        vm.expectRevert();
         factory.createProject(
             true,
             address(0),

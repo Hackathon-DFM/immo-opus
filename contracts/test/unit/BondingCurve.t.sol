@@ -36,7 +36,7 @@ contract BondingCurveTest is BaseTest {
         
         // Approve USDC
         vm.startPrank(user1);
-        approveUSDC(address(curve), buyAmount);
+        usdc.approve(address(curve), buyAmount);
         
         // Calculate expected tokens
         uint256 expectedTokens = curve.calculateBuyReturn(buyAmount);
@@ -60,7 +60,7 @@ contract BondingCurveTest is BaseTest {
         uint256 minTokens = 1000e18; // Minimum expected tokens
         
         vm.startPrank(user1);
-        approveUSDC(address(curve), buyAmount);
+        usdc.approve(address(curve), buyAmount);
         
         uint256 tokensReceived = curve.buyWithSlippage(buyAmount, minTokens);
         vm.stopPrank();
@@ -68,12 +68,13 @@ contract BondingCurveTest is BaseTest {
         assertGe(tokensReceived, minTokens);
     }
     
-    function testFail_BuyWithExcessiveSlippage() public {
+    function test_RevertWhen_BuyWithExcessiveSlippage() public {
         uint256 buyAmount = 100e6;
         uint256 minTokens = 1_000_000e18; // Unrealistic expectation
         
         vm.startPrank(user1);
-        approveUSDC(address(curve), buyAmount);
+        usdc.approve(address(curve), buyAmount);
+        vm.expectRevert();
         curve.buyWithSlippage(buyAmount, minTokens);
         vm.stopPrank();
     }
@@ -82,7 +83,7 @@ contract BondingCurveTest is BaseTest {
         // First buy some tokens
         uint256 buyAmount = 100e6;
         vm.startPrank(user1);
-        approveUSDC(address(curve), buyAmount);
+        usdc.approve(address(curve), buyAmount);
         uint256 tokensBought = curve.buy(buyAmount);
         
         // Now sell half
@@ -103,7 +104,7 @@ contract BondingCurveTest is BaseTest {
         
         // Buy tokens
         vm.startPrank(user1);
-        approveUSDC(address(curve), 100e6);
+        usdc.approve(address(curve), 100e6);
         curve.buy(100e6);
         vm.stopPrank();
         
@@ -115,7 +116,7 @@ contract BondingCurveTest is BaseTest {
     function test_PriceDecreasesWithSells() public {
         // First buy
         vm.startPrank(user1);
-        approveUSDC(address(curve), 100e6);
+        usdc.approve(address(curve), 100e6);
         uint256 tokensBought = curve.buy(100e6);
         
         uint256 priceAfterBuy = curve.getCurrentPrice();
@@ -135,7 +136,7 @@ contract BondingCurveTest is BaseTest {
         
         // Buy tokens to increase market cap
         vm.startPrank(user1);
-        approveUSDC(address(curve), 1000e6);
+        usdc.approve(address(curve), 1000e6);
         curve.buy(1000e6);
         vm.stopPrank();
         
@@ -149,7 +150,7 @@ contract BondingCurveTest is BaseTest {
         uint256 largeBuyAmount = 10_000e6; // $10k
         
         vm.startPrank(user1);
-        approveUSDC(address(curve), largeBuyAmount);
+        usdc.approve(address(curve), largeBuyAmount);
         curve.buy(largeBuyAmount);
         vm.stopPrank();
         
@@ -168,15 +169,16 @@ contract BondingCurveTest is BaseTest {
         assertEq(usdc.balanceOf(directPoolAddress), curve.collectedUSDC());
     }
     
-    function testFail_GraduateBeforeTarget() public {
+    function test_RevertWhen_GraduateBeforeTarget() public {
         // Try to graduate without reaching target
+        vm.expectRevert();
         curve.graduate();
     }
     
-    function testFail_BuyAfterGraduation() public {
+    function test_RevertWhen_BuyAfterGraduation() public {
         // Graduate first
         vm.startPrank(user1);
-        approveUSDC(address(curve), 10_000e6);
+        usdc.approve(address(curve), 10_000e6);
         curve.buy(10_000e6);
         vm.stopPrank();
         
@@ -184,7 +186,8 @@ contract BondingCurveTest is BaseTest {
         
         // Try to buy after graduation
         vm.startPrank(user2);
-        approveUSDC(address(curve), 100e6);
+        usdc.approve(address(curve), 100e6);
+        vm.expectRevert();
         curve.buy(100e6);
         vm.stopPrank();
     }
@@ -194,7 +197,7 @@ contract BondingCurveTest is BaseTest {
         
         // Buy tokens
         vm.startPrank(user1);
-        approveUSDC(address(curve), 100e6);
+        usdc.approve(address(curve), 100e6);
         curve.buy(100e6);
         vm.stopPrank();
         
@@ -208,7 +211,7 @@ contract BondingCurveTest is BaseTest {
         sellRatio = bound(sellRatio, 1, 100); // Sell 1% to 100% of bought tokens
         
         vm.startPrank(user1);
-        approveUSDC(address(curve), buyAmount);
+        usdc.approve(address(curve), buyAmount);
         
         uint256 tokensBought = curve.buy(buyAmount);
         uint256 sellAmount = (tokensBought * sellRatio) / 100;

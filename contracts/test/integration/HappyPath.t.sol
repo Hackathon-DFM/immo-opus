@@ -83,14 +83,14 @@ contract HappyPathTest is BaseTest {
         
         // User1 buys
         vm.startPrank(user1);
-        approveUSDC(address(curve), 2000e6); // $2000
+        usdc.approve(address(curve), 2000e6); // $2000
         uint256 user1Tokens = curve.buy(2000e6);
         totalBuyAmount += 2000e6;
         vm.stopPrank();
         
         // User2 buys
         vm.startPrank(user2);
-        approveUSDC(address(curve), 3000e6); // $3000
+        usdc.approve(address(curve), 3000e6); // $3000
         uint256 user2Tokens = curve.buy(3000e6);
         totalBuyAmount += 3000e6;
         vm.stopPrank();
@@ -108,7 +108,7 @@ contract HappyPathTest is BaseTest {
         
         // 4. More users buy until graduation
         vm.startPrank(user1);
-        approveUSDC(address(curve), 10_000e6); // Large buy to trigger graduation
+        usdc.approve(address(curve), 10_000e6); // Large buy to trigger graduation
         curve.buy(10_000e6);
         vm.stopPrank();
         

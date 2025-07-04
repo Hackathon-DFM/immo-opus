@@ -52,18 +52,26 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
 
     // Set USDC address (temporary function for deployment flexibility)
     function setUSDC(address _usdc) external {
-        require(usdc == address(0), "USDC already set");
-        usdc = _usdc;
+        if (usdc == address(0)) {
+            usdc = _usdc;
+        }
     }
 
     // Buy tokens with USDC
     function buy(uint256 usdcAmount) external returns (uint256 tokensReceived) {
-        tokensReceived = this.buyWithSlippage(usdcAmount, 0);
+        tokensReceived = _buyWithSlippage(usdcAmount, 0);
     }
 
     function buyWithSlippage(uint256 usdcAmount, uint256 minTokensOut) 
         external 
         nonReentrant 
+        returns (uint256 tokensReceived) 
+    {
+        tokensReceived = _buyWithSlippage(usdcAmount, minTokensOut);
+    }
+    
+    function _buyWithSlippage(uint256 usdcAmount, uint256 minTokensOut) 
+        internal 
         returns (uint256 tokensReceived) 
     {
         if (graduated) revert AlreadyGraduated();
@@ -96,12 +104,19 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
 
     // Sell tokens for USDC
     function sell(uint256 tokenAmount) external returns (uint256 usdcReceived) {
-        usdcReceived = this.sellWithSlippage(tokenAmount, 0);
+        usdcReceived = _sellWithSlippage(tokenAmount, 0);
     }
 
     function sellWithSlippage(uint256 tokenAmount, uint256 minUsdcOut) 
         external 
         nonReentrant 
+        returns (uint256 usdcReceived) 
+    {
+        usdcReceived = _sellWithSlippage(tokenAmount, minUsdcOut);
+    }
+    
+    function _sellWithSlippage(uint256 tokenAmount, uint256 minUsdcOut) 
+        internal 
         returns (uint256 usdcReceived) 
     {
         if (graduated) revert AlreadyGraduated();

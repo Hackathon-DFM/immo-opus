@@ -21,7 +21,7 @@ contract EdgeCasesTest is BaseTest {
         uint256 buyAmount = (needed * curve.virtualUSDCReserve()) / currentMarketCap;
         
         vm.startPrank(user1);
-        approveUSDC(address(curve), buyAmount * 2); // Extra for safety
+        usdc.approve(address(curve), buyAmount * 2); // Extra for safety
         
         // Buy in small increments to get close to target
         while (curve.getCurrentMarketCap() < TARGET_MARKET_CAP && !curve.canGraduate()) {
@@ -98,7 +98,7 @@ contract EdgeCasesTest is BaseTest {
         uint256 tinyAmount = 1; // 1 USDC unit (0.000001 USDC)
         
         vm.startPrank(user1);
-        approveUSDC(address(curve), tinyAmount);
+        usdc.approve(address(curve), tinyAmount);
         
         uint256 tokensReceived = curve.buy(tinyAmount);
         vm.stopPrank();
@@ -189,13 +189,13 @@ contract EdgeCasesTest is BaseTest {
         
         // User1 buys close to graduation
         vm.startPrank(user1);
-        approveUSDC(address(curve), 9_000e6);
+        usdc.approve(address(curve), 9_000e6);
         curve.buy(9_000e6);
         vm.stopPrank();
         
         // User2 prepares to buy
         vm.startPrank(user2);
-        approveUSDC(address(curve), 2_000e6);
+        usdc.approve(address(curve), 2_000e6);
         
         // User1 graduates in between
         vm.stopPrank();

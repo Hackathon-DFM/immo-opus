@@ -26,7 +26,7 @@ contract BaseTest is Test {
     
     // Test parameters
     uint256 public constant INITIAL_PRICE = 0.0001e6; // $0.0001 in USDC (6 decimals)
-    uint256 public constant TARGET_MARKET_CAP = 10000e6; // $10,000 in USDC
+    uint256 public constant TARGET_MARKET_CAP = 100000e6; // $100,000 in USDC
     uint256 public constant BORROW_TIME_LIMIT = 7 days;
     uint256 public constant TOKEN_SUPPLY = 1_000_000_000e18; // 1B tokens
     
@@ -88,10 +88,17 @@ contract BaseTest is Test {
             TARGET_MARKET_CAP,
             BORROW_TIME_LIMIT
         );
+        // Set USDC address for bonding curve
+        BondingCurve(project).setUSDC(address(usdc));
         return project;
     }
     
     function approveUSDC(address spender, uint256 amount) public {
+        usdc.approve(spender, amount);
+    }
+    
+    function approveUSDCAs(address user, address spender, uint256 amount) public {
+        vm.prank(user);
         usdc.approve(spender, amount);
     }
     
