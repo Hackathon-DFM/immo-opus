@@ -26,7 +26,7 @@ contract BaseTest is Test {
     
     // Test parameters
     uint256 public constant INITIAL_PRICE = 0.0001e6; // $0.0001 in USDC (6 decimals)
-    uint256 public constant TARGET_MARKET_CAP = 100000e6; // $100,000 in USDC
+    uint256 public constant TARGET_MARKET_CAP = 1000000e6; // $1,000,000 in USDC
     uint256 public constant BORROW_TIME_LIMIT = 7 days;
     uint256 public constant TOKEN_SUPPLY = 1_000_000_000e18; // 1B tokens
     

@@ -147,7 +147,7 @@ contract BondingCurveTest is BaseTest {
     
     function test_Graduation() public {
         // Buy enough to reach target market cap
-        uint256 largeBuyAmount = 100_000e6; // $100k
+        uint256 largeBuyAmount = 1_000_000e6; // $1M
         
         vm.startPrank(user1);
         usdc.approve(address(curve), largeBuyAmount);
@@ -178,8 +178,8 @@ contract BondingCurveTest is BaseTest {
     function test_RevertWhen_BuyAfterGraduation() public {
         // Graduate first
         vm.startPrank(user1);
-        usdc.approve(address(curve), 100_000e6);
-        curve.buy(100_000e6);
+        usdc.approve(address(curve), 1_000_000e6);
+        curve.buy(1_000_000e6);
         vm.stopPrank();
         
         curve.graduate();
