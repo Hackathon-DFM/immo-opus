@@ -20,6 +20,7 @@ contract ProjectFactory is IProjectFactory {
 
     mapping(address => address[]) public projectsByOwner;
     address[] public allProjects;
+    mapping(address => PoolMode) public projectModes; // Track the mode of each project
     
     address public usdc; // USDC address for the network
     address public directPoolTemplate; // Template contract for DirectPool clones
@@ -104,6 +105,7 @@ contract ProjectFactory is IProjectFactory {
         // Update mappings
         projectsByOwner[msg.sender].push(projectAddress);
         allProjects.push(projectAddress);
+        projectModes[projectAddress] = mode;
 
         // Transfer tokens to the project
         IERC20(token).safeTransfer(projectAddress, actualTokenAmount);
@@ -222,5 +224,9 @@ contract ProjectFactory is IProjectFactory {
 
     function getProjectCount() external view returns (uint256) {
         return allProjects.length;
+    }
+
+    function getProjectMode(address project) external view returns (PoolMode) {
+        return projectModes[project];
     }
 }

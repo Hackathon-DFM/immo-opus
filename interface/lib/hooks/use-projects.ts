@@ -1,7 +1,7 @@
-import { useReadContract, useContractEvent, useAccount, useChainId } from 'wagmi';
+import { useReadContract, useReadContracts, useAccount, useChainId } from 'wagmi';
 import { useMemo } from 'react';
-import { projectFactoryAbi } from '../contracts/ProjectFactory';
-import { getContractAddresses } from '../../src/config/contracts';
+import ProjectFactoryABI from '../contracts/ProjectFactory.json';
+import { getContractAddresses } from '@/src/config/contracts';
 
 export interface Project {
   address: `0x${string}`;
@@ -18,33 +18,46 @@ export function useAllProjects() {
   const chainId = useChainId();
   const contractAddresses = getContractAddresses(chainId);
 
-  // Listen to ProjectCreated events to get real-time updates
-  const { data: projectCreatedEvents } = useContractEvent({
+  // Read all project addresses from the factory
+  const { data: allProjectAddresses, isLoading } = useReadContract({
     address: contractAddresses.projectFactory,
-    abi: projectFactoryAbi,
-    eventName: 'ProjectCreated',
-    fromBlock: 'earliest',
+    abi: ProjectFactoryABI,
+    functionName: 'getAllProjects',
     query: {
       enabled: contractAddresses.projectFactory !== '0x0000000000000000000000000000000000000000',
+      refetchInterval: 60000, // Refresh every minute
     },
   });
 
-  // Transform events into project data
+  // Read project modes for all addresses
+  const { data: projectModes } = useReadContracts({
+    contracts: allProjectAddresses
+      ? (allProjectAddresses as `0x${string}`[]).map((address) => ({
+          address: contractAddresses.projectFactory,
+          abi: ProjectFactoryABI,
+          functionName: 'getProjectMode',
+          args: [address],
+        }))
+      : [],
+    query: {
+      enabled: !!allProjectAddresses && allProjectAddresses.length > 0,
+    },
+  });
+
+  // Transform addresses into project data
   const projects: Project[] = useMemo(() => {
-    if (!projectCreatedEvents) return [];
+    if (!allProjectAddresses || !projectModes) return [];
     
-    return projectCreatedEvents.map((event) => ({
-      address: event.args.project as `0x${string}`,
-      owner: event.args.owner as `0x${string}`,
-      mode: event.args.mode === 0 ? 'DIRECT_POOL' : 'BONDING_CURVE',
-      createdBlock: event.blockNumber,
-      createdTxHash: event.transactionHash,
+    return (allProjectAddresses as `0x${string}`[]).map((address, index) => ({
+      address,
+      owner: '0x0000000000000000000000000000000000000000' as `0x${string}`, // Would need to fetch from each project
+      mode: projectModes[index]?.result === 1 ? 'BONDING_CURVE' : 'DIRECT_POOL',
     }));
-  }, [projectCreatedEvents]);
+  }, [allProjectAddresses, projectModes]);
 
   return {
     projects,
-    isLoading: !projectCreatedEvents,
+    isLoading,
   };
 }
 
@@ -56,35 +69,48 @@ export function useProjectsByOwner(ownerAddress?: `0x${string}`) {
   // Use provided address or current connected address
   const targetAddress = ownerAddress || currentAddress;
 
-  // Listen to ProjectCreated events filtered by owner
-  const { data: projectCreatedEvents } = useContractEvent({
+  // Read projects by owner from the factory
+  const { data: projectAddresses, isLoading } = useReadContract({
     address: contractAddresses.projectFactory,
-    abi: projectFactoryAbi,
-    eventName: 'ProjectCreated',
-    args: targetAddress ? { owner: targetAddress } : undefined,
-    fromBlock: 'earliest',
+    abi: ProjectFactoryABI,
+    functionName: 'getProjectsByOwner',
+    args: targetAddress ? [targetAddress] : undefined,
     query: {
       enabled: !!contractAddresses.projectFactory && 
                contractAddresses.projectFactory !== '0x0000000000000000000000000000000000000000' && 
                !!targetAddress,
+      refetchInterval: 60000, // Refresh every minute
     },
   });
 
-  // Transform events into project data
+  // Read project modes for all addresses
+  const { data: projectModes } = useReadContracts({
+    contracts: projectAddresses
+      ? (projectAddresses as `0x${string}`[]).map((address) => ({
+          address: contractAddresses.projectFactory,
+          abi: ProjectFactoryABI,
+          functionName: 'getProjectMode',
+          args: [address],
+        }))
+      : [],
+    query: {
+      enabled: !!projectAddresses && projectAddresses.length > 0,
+    },
+  });
+
+  // Transform addresses into project data
   const projects: Project[] = useMemo(() => {
-    if (!projectCreatedEvents) return [];
+    if (!projectAddresses || !targetAddress || !projectModes) return [];
     
-    return projectCreatedEvents.map((event) => ({
-      address: event.args.project as `0x${string}`,
-      owner: event.args.owner as `0x${string}`,
-      mode: event.args.mode === 0 ? 'DIRECT_POOL' : 'BONDING_CURVE',
-      createdBlock: event.blockNumber,
-      createdTxHash: event.transactionHash,
+    return (projectAddresses as `0x${string}`[]).map((address, index) => ({
+      address,
+      owner: targetAddress,
+      mode: projectModes[index]?.result === 1 ? 'BONDING_CURVE' : 'DIRECT_POOL',
     }));
-  }, [projectCreatedEvents]);
+  }, [projectAddresses, targetAddress, projectModes]);
 
   return {
     projects,
-    isLoading: !projectCreatedEvents && !!targetAddress,
+    isLoading: isLoading && !!targetAddress,
   };
 }

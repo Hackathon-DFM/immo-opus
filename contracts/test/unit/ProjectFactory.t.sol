@@ -205,4 +205,29 @@ contract ProjectFactoryTest is BaseTest {
         
         vm.stopPrank();
     }
+    
+    function test_GetProjectMode() public {
+        vm.startPrank(projectOwner);
+        
+        // Create Direct Pool project
+        address directProject = factory.createProject(
+            true, address(0), "Direct", "DIR", "Direct Pool", 0,
+            IProjectFactory.PoolMode.DIRECT_POOL, INITIAL_PRICE, 0, BORROW_TIME_LIMIT
+        );
+        
+        // Create Bonding Curve project
+        address bondingProject = factory.createProject(
+            true, address(0), "Bonding", "BOND", "Bonding Curve", 0,
+            IProjectFactory.PoolMode.BONDING_CURVE, 0, TARGET_MARKET_CAP, BORROW_TIME_LIMIT
+        );
+        
+        vm.stopPrank();
+        
+        // Verify modes are stored correctly
+        assertEq(uint256(factory.getProjectMode(directProject)), uint256(IProjectFactory.PoolMode.DIRECT_POOL));
+        assertEq(uint256(factory.getProjectMode(bondingProject)), uint256(IProjectFactory.PoolMode.BONDING_CURVE));
+        
+        // Verify mode for non-existent project returns 0 (DIRECT_POOL)
+        assertEq(uint256(factory.getProjectMode(address(0x1234))), 0);
+    }
 }

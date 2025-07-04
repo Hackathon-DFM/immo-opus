@@ -35,4 +35,5 @@ interface IProjectFactory {
     function getProjectsByOwner(address owner) external view returns (address[] memory);
     function getAllProjects() external view returns (address[] memory);
     function getProjectCount() external view returns (uint256);
+    function getProjectMode(address project) external view returns (PoolMode);
 }
