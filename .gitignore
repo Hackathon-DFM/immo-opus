@@ -1,0 +1,101 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.coverage_cache/
+.coverage_contracts/
+
+# Production
+build/
+dist/
+out/
+
+# Foundry
+cache/
+broadcast/
+*/broadcast/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+*.log
+.cache
+.parcel-cache
+
+# Foundry artifacts
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+
+# Hardhat files (if used)
+artifacts/
+cache_hardhat/
+typechain/
+typechain-types/
+
+# Subgraph (if used)
+generated/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Documentation build
+docs/_build/
+docs/_site/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Lock files (depends on your preference)
+# Uncomment if you don't want to commit lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
