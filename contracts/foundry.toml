@@ -4,6 +4,11 @@ out = "out"
 libs = ["lib"]
 # No optimizer for easier verification
 optimizer = false
+# Allow file system access for deployment scripts
+fs_permissions = [
+    { access = "read-write", path = "./deployments" },
+    { access = "read-write", path = "./contracts/deployments" }
+]
 
 [rpc_endpoints]
 arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"

@@ -1,0 +1,7 @@
+{
+  "projectFactory": "0xbA388fce5e34787C99C3a6B63B1178D5A0Af8CcA",
+  "usdc": "0xd2e00f244804D9c64B909ad3C8F191559855222A",
+  "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+  "network": "arbitrum-sepolia",
+  "chainId": 421614
+}
