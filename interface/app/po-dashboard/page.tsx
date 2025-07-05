@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
-import { useProjectsByOwner } from '../../lib/hooks/use-projects';
-import { useMultipleProjectDetails, ProjectDetails } from '../../lib/hooks/use-project-details';
+import { usePonderProjectsByOwner } from '../../lib/hooks/use-ponder-projects';
 import { useMarketMakers } from '../../lib/hooks/use-market-makers';
+import { Project } from '../../lib/graphql/client';
 
 
 function StatusBadge({ status }: { status: string }) {
@@ -26,31 +26,66 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ProjectCard({ 
-  project, 
-  projectDetails, 
-  isLoadingDetails 
+  project 
 }: { 
-  project: { address: `0x${string}`; mode: 'DIRECT_POOL' | 'BONDING_CURVE' };
-  projectDetails: ProjectDetails | null;
-  isLoadingDetails: boolean;
+  project: Project;
 }) {
   const [showMMManagement, setShowMMManagement] = useState(false);
   const [newMMAddress, setNewMMAddress] = useState('');
 
+  // Only use market makers hook for DirectPool projects
+  const isDirectPool = project.mode === 'DIRECT_POOL';
+  
   const { 
     marketMakers, 
     isLoading: isLoadingMMs, 
-    isFinalized,
-    totalLiquidity,
-    availableLiquidity,
+    isFinalized: contractIsFinalized,
+    totalLiquidity: contractTotalLiquidity,
+    availableLiquidity: contractAvailableLiquidity,
     registerMM,
     unregisterMM,
     finalizeMMs,
     emergencyWithdraw,
     pendingTransaction
-  } = useMarketMakers(project.address);
+  } = isDirectPool ? useMarketMakers(project.address as `0x${string}`) : {
+    marketMakers: [],
+    isLoading: false,
+    isFinalized: false,
+    totalLiquidity: BigInt(0),
+    availableLiquidity: BigInt(0),
+    registerMM: async () => {},
+    unregisterMM: async () => {},
+    finalizeMMs: async () => {},
+    emergencyWithdraw: async () => {},
+    pendingTransaction: null
+  };
 
-  if (isLoadingDetails || isLoadingMMs) {
+  // Prefer Ponder data if available, fallback to contract data
+  const isFinalized = project.isFinalized;
+  const totalLiquidity = project.totalLiquidity ? BigInt(project.totalLiquidity) : contractTotalLiquidity;
+  const availableLiquidity = project.availableLiquidity ? BigInt(project.availableLiquidity) : contractAvailableLiquidity;
+
+  const handleRegisterMM = async () => {
+    if (newMMAddress && newMMAddress.startsWith('0x') && newMMAddress.length === 42) {
+      await registerMM(newMMAddress as `0x${string}`);
+      setNewMMAddress('');
+    }
+  };
+
+  const handleFinalizeMMs = async () => {
+    await finalizeMMs();
+    setShowMMManagement(false);
+  };
+
+  // Calculate derived data
+  const borrowedAmount = totalLiquidity - availableLiquidity;
+  const status = project.graduated ? 'Graduated' : 
+                 project.isFinalized ? 'Active' : 'MM Registration';
+  
+  const timeLimit = project.borrowTimeLimit ? 
+    Math.floor(project.borrowTimeLimit / (24 * 60 * 60)) : 0; // Convert seconds to days
+
+  if (isLoadingMMs) {
     return (
       <div className="bg-white shadow rounded-lg p-6">
         <div className="animate-pulse">
@@ -69,46 +104,16 @@ function ProjectCard({
     );
   }
 
-  if (!projectDetails) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="text-center text-gray-500">
-          Failed to load project details
-        </div>
-      </div>
-    );
-  }
-
-  const handleRegisterMM = async () => {
-    if (newMMAddress && newMMAddress.startsWith('0x') && newMMAddress.length === 42) {
-      await registerMM(newMMAddress as `0x${string}`);
-      setNewMMAddress('');
-    }
-  };
-
-  const handleFinalizeMMs = async () => {
-    await finalizeMMs();
-    setShowMMManagement(false);
-  };
-
-  // Calculate derived data
-  const borrowedAmount = totalLiquidity - availableLiquidity;
-  const status = projectDetails.graduated ? 'Graduated' : 
-                 isFinalized ? 'Active' : 'MM Registration';
-  
-  const timeLimit = projectDetails.borrowTimeLimit ? 
-    Math.floor(projectDetails.borrowTimeLimit / (24 * 60 * 60)) : 0; // Convert seconds to days
-
   return (
     <div className="bg-white shadow rounded-lg p-6">
       {/* Project Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {projectDetails.tokenName || 'Unknown Token'}
+            {project.token.name || 'Unknown Token'}
           </h3>
           <p className="text-sm text-gray-600">
-            {projectDetails.tokenSymbol || 'UNK'} • {project.mode.replace('_', ' ')}
+            {project.token.symbol || 'UNK'} • {project.mode.replace('_', ' ')}
           </p>
           <p className="text-xs text-gray-400 mt-1">
             {project.address.slice(0, 6)}...{project.address.slice(-4)}
@@ -119,32 +124,67 @@ function ProjectCard({
 
       {/* Project Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Liquidity</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {totalLiquidity ? `$${Number(formatUnits(totalLiquidity, 6)).toLocaleString()}` : '$0'}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Available</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {availableLiquidity ? `$${Number(formatUnits(availableLiquidity, 6)).toLocaleString()}` : '$0'}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Borrowed</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {borrowedAmount ? `$${Number(formatUnits(borrowedAmount, 6)).toLocaleString()}` : '$0'}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Time Limit</p>
-          <p className="text-lg font-semibold text-gray-900">{timeLimit} days</p>
-        </div>
+        {isDirectPool ? (
+          <>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Liquidity</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {totalLiquidity ? `$${Number(formatUnits(totalLiquidity, 6)).toLocaleString()}` : '$0'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Available</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {availableLiquidity ? `$${Number(formatUnits(availableLiquidity, 6)).toLocaleString()}` : '$0'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Borrowed</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {borrowedAmount ? `$${Number(formatUnits(borrowedAmount, 6)).toLocaleString()}` : '$0'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Time Limit</p>
+              <p className="text-lg font-semibold text-gray-900">{timeLimit} days</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Current Price</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {project.currentPrice ? `$${Number(formatUnits(BigInt(project.currentPrice), 6)).toFixed(4)}` : '$0'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Market Cap</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {project.currentMarketCap ? `$${Number(formatUnits(BigInt(project.currentMarketCap), 6)).toLocaleString()}` : '$0'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Target Cap</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {project.targetMarketCap ? `$${Number(formatUnits(BigInt(project.targetMarketCap), 6)).toLocaleString()}` : '$0'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Progress</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {project.currentMarketCap && project.targetMarketCap 
+                  ? `${Math.round((Number(project.currentMarketCap) / Number(project.targetMarketCap)) * 100)}%`
+                  : '0%'
+                }
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* MM Management Section */}
-      <div className="border-t pt-4">
+      {/* MM Management Section - Only for DirectPool */}
+      {isDirectPool && (
+        <div className="border-t pt-4">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-md font-medium text-gray-900">
             Market Makers ({marketMakers.length})
@@ -276,6 +316,42 @@ function ProjectCard({
           )}
         </div>
       </div>
+      )}
+
+      {/* Bonding Curve Info Section */}
+      {!isDirectPool && (
+        <div className="border-t pt-4">
+          <h4 className="text-md font-medium text-gray-900 mb-4">Bonding Curve Status</h4>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-gray-600">Graduation Progress</span>
+              <span className="text-sm font-medium text-gray-900">
+                {project.currentMarketCap && project.targetMarketCap 
+                  ? `${Math.round((Number(project.currentMarketCap) / Number(project.targetMarketCap)) * 100)}%`
+                  : '0%'
+                }
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ 
+                  width: project.currentMarketCap && project.targetMarketCap 
+                    ? `${Math.min(100, Math.round((Number(project.currentMarketCap) / Number(project.targetMarketCap)) * 100))}%`
+                    : '0%'
+                }}
+              />
+            </div>
+            {project.graduated && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800">
+                  🎉 This project has graduated! It is now operating as a Direct Pool.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Project Actions */}
       <div className="border-t pt-4 mt-4">
@@ -301,44 +377,33 @@ export default function PODashboard() {
   const [filter, setFilter] = useState<'all' | 'active' | 'mm-registration' | 'graduated'>('all');
   const { address, isConnected } = useAccount();
 
-  // Get user's projects from events
-  const { projects, isLoading: isLoadingProjects } = useProjectsByOwner(address);
-
-  // Get detailed information for all projects
-  const { 
-    projectDetails, 
-    isLoading: isLoadingDetails 
-  } = useMultipleProjectDetails(
-    projects.map(p => ({ address: p.address, mode: p.mode }))
-  );
-
-  // Create a map for easy lookup
-  const projectDetailsMap = new Map(
-    projectDetails.map(pd => [pd.address, pd])
-  );
+  // Get user's projects from Ponder
+  const { data: projects = [], isLoading: isLoadingProjects } = usePonderProjectsByOwner(address);
 
   // Filter projects based on status
   const filteredProjects = projects.filter(project => {
     if (filter === 'all') return true;
     
-    const details = projectDetailsMap.get(project.address);
-    if (!details) return false;
-    
-    const status = details.graduated ? 'graduated' : 
-                   details.isFinalized ? 'active' : 'mm-registration';
+    const status = project.graduated ? 'graduated' : 
+                   project.isFinalized ? 'active' : 'mm-registration';
     
     return filter === status;
   });
 
   // Calculate totals from real data
   const totalProjects = projects.length;
-  const activeProjects = projectDetails.filter(pd => pd.isFinalized && !pd.graduated).length;
-  const totalLiquidity = projectDetails.reduce((sum, pd) => 
-    sum + (pd.totalLiquidity ? Number(formatUnits(pd.totalLiquidity, 6)) : 0), 0
+  const activeProjects = projects.filter(p => p.isFinalized && !p.graduated).length;
+  const totalLiquidity = projects.reduce((sum, p) => 
+    sum + (p.totalLiquidity ? Number(formatUnits(BigInt(p.totalLiquidity), 6)) : 0), 0
   );
-  const totalBorrowed = projectDetails.reduce((sum, pd) => 
-    sum + (pd.borrowedAmount ? Number(formatUnits(pd.borrowedAmount, 6)) : 0), 0
-  );
+  const totalBorrowed = projects.reduce((sum, p) => {
+    // Calculate borrowed amount from available vs total liquidity for direct pools
+    if (p.totalLiquidity && p.availableLiquidity) {
+      const borrowed = BigInt(p.totalLiquidity) - BigInt(p.availableLiquidity);
+      return sum + Number(formatUnits(borrowed, 6));
+    }
+    return sum;
+  }, 0);
 
   // Show wallet connection prompt if not connected
   if (!isConnected) {
@@ -384,7 +449,7 @@ export default function PODashboard() {
           <div className="flex items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">Active Projects</p>
-              {isLoadingDetails ? (
+              {isLoadingProjects ? (
                 <div className="h-8 bg-gray-200 rounded w-16 animate-pulse"></div>
               ) : (
                 <p className="text-2xl font-bold text-green-600">{activeProjects}</p>
@@ -396,7 +461,7 @@ export default function PODashboard() {
           <div className="flex items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Liquidity</p>
-              {isLoadingDetails ? (
+              {isLoadingProjects ? (
                 <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
               ) : (
                 <p className="text-2xl font-bold text-gray-900">${totalLiquidity.toLocaleString()}</p>
@@ -408,7 +473,7 @@ export default function PODashboard() {
           <div className="flex items-center">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Borrowed</p>
-              {isLoadingDetails ? (
+              {isLoadingProjects ? (
                 <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
               ) : (
                 <p className="text-2xl font-bold text-purple-600">${totalBorrowed.toLocaleString()}</p>
@@ -467,8 +532,6 @@ export default function PODashboard() {
             <ProjectCard 
               key={project.address} 
               project={project}
-              projectDetails={projectDetailsMap.get(project.address) || null}
-              isLoadingDetails={isLoadingDetails}
             />
           ))
         ) : projects.length === 0 ? (

@@ -13,6 +13,7 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
   await context.db
     .insert(projectOwner)
     .values({
+      id: owner, // id is same as address
       address: owner,
       projectCount: 1,
       createdAt: Number(block.timestamp),
@@ -28,6 +29,7 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
   await context.db
     .insert(token)
     .values({
+      id: tokenAddress, // id is same as address
       address: tokenAddress,
       name: "Unknown", // Will be updated later
       symbol: "UNK", // Will be updated later
@@ -42,6 +44,7 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
   await context.db
     .insert(project)
     .values({
+      id: projectAddress, // id is same as address
       address: projectAddress,
       owner,
       mode: modeString,

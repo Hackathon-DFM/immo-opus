@@ -1,14 +1,16 @@
 import { onchainTable, relations } from "ponder";
 
 export const projectOwner = onchainTable("projectOwner", (t) => ({
-  address: t.hex().primaryKey(), // PO address
+  id: t.hex().primaryKey(), // Same as address for projectOwner
+  address: t.hex().notNull(), // PO address
   projectCount: t.integer().notNull(),
   createdAt: t.integer().notNull(),
   lastUpdated: t.integer().notNull(),
 }));
 
 export const token = onchainTable("token", (t) => ({
-  address: t.hex().primaryKey(), // Token address
+  id: t.hex().primaryKey(), // Same as address for token
+  address: t.hex().notNull(), // Token address
   name: t.text().notNull(),
   symbol: t.text().notNull(),
   decimals: t.integer().notNull(),
@@ -18,7 +20,8 @@ export const token = onchainTable("token", (t) => ({
 }));
 
 export const project = onchainTable("project", (t) => ({
-  address: t.hex().primaryKey(), // Project address (DirectPool or BondingCurve)
+  id: t.hex().primaryKey(), // Same as address for project
+  address: t.hex().notNull(), // Project address (DirectPool or BondingCurve)
   owner: t.hex().notNull(),
   mode: t.text().notNull(), // "DIRECT_POOL" or "BONDING_CURVE"
   tokenAddress: t.hex().notNull(),
@@ -74,7 +77,8 @@ export const supportedClob = onchainTable("supportedClob", (t) => ({
 }));
 
 export const clob = onchainTable("clob", (t) => ({
-  address: t.hex().primaryKey(), // CLOB exchange address
+  id: t.hex().primaryKey(), // Same as address for CLOB
+  address: t.hex().notNull(), // CLOB exchange address
   name: t.text().notNull(),
   isActive: t.boolean().notNull(),
   addedAt: t.integer().notNull(),
@@ -92,11 +96,11 @@ export const tokenRelations = relations(token, ({ many }) => ({
 export const projectRelations = relations(project, ({ one, many }) => ({
   owner: one(projectOwner, {
     fields: [project.owner],
-    references: [projectOwner.address],
+    references: [projectOwner.id],
   }),
   token: one(token, {
     fields: [project.tokenAddress],
-    references: [token.address],
+    references: [token.id],
   }),
   registeredMMs: many(registeredMM),
   borrows: many(borrow),
@@ -106,7 +110,7 @@ export const projectRelations = relations(project, ({ one, many }) => ({
 export const registeredMMRelations = relations(registeredMM, ({ one, many }) => ({
   project: one(project, {
     fields: [registeredMM.projectAddress],
-    references: [project.address],
+    references: [project.id],
   }),
   borrows: many(borrow),
 }));
@@ -114,7 +118,7 @@ export const registeredMMRelations = relations(registeredMM, ({ one, many }) => 
 export const borrowRelations = relations(borrow, ({ one }) => ({
   project: one(project, {
     fields: [borrow.projectAddress],
-    references: [project.address],
+    references: [project.id],
   }),
   registeredMM: one(registeredMM, {
     fields: [borrow.projectAddress, borrow.mmAddress],
@@ -125,11 +129,11 @@ export const borrowRelations = relations(borrow, ({ one }) => ({
 export const supportedClobRelations = relations(supportedClob, ({ one }) => ({
   project: one(project, {
     fields: [supportedClob.projectAddress],
-    references: [project.address],
+    references: [project.id],
   }),
   clob: one(clob, {
     fields: [supportedClob.clobAddress],
-    references: [clob.address],
+    references: [clob.id],
   }),
 }));
 
