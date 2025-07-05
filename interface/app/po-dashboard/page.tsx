@@ -66,15 +66,49 @@ function ProjectCard({
   const availableLiquidity = project.availableLiquidity ? BigInt(project.availableLiquidity) : contractAvailableLiquidity;
 
   const handleRegisterMM = async () => {
-    if (newMMAddress && newMMAddress.startsWith('0x') && newMMAddress.length === 42) {
+    if (!newMMAddress || !newMMAddress.startsWith('0x') || newMMAddress.length !== 42) {
+      alert('Please enter a valid Ethereum address');
+      return;
+    }
+
+    // Check if MM is already registered
+    const isAlreadyRegistered = marketMakers.some(mm => 
+      mm.address.toLowerCase() === newMMAddress.toLowerCase()
+    );
+    
+    if (isAlreadyRegistered) {
+      alert('This address is already registered as a Market Maker');
+      return;
+    }
+
+    try {
       await registerMM(newMMAddress as `0x${string}`);
       setNewMMAddress('');
+    } catch (error) {
+      console.error('Failed to register MM:', error);
     }
   };
 
   const handleFinalizeMMs = async () => {
-    await finalizeMMs();
-    setShowMMManagement(false);
+    if (marketMakers.length === 0) {
+      alert('Please register at least one Market Maker before finalizing');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to finalize the Market Makers? This action cannot be undone.\n\n` +
+      `Total MMs: ${marketMakers.length}\n` +
+      `Once finalized, you cannot add or remove Market Makers.`
+    );
+
+    if (confirmed) {
+      try {
+        await finalizeMMs();
+        setShowMMManagement(false);
+      } catch (error) {
+        console.error('Failed to finalize MMs:', error);
+      }
+    }
   };
 
   // Calculate derived data
@@ -200,13 +234,72 @@ function ProjectCard({
           )}
         </div>
 
+        {/* Finalized Info */}
+        {isFinalized && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-sm text-green-800">
+                <p className="font-medium">Market Makers have been finalized</p>
+                <p className="mt-1">MMs can now borrow tokens up to their allocation and start trading on CLOB exchanges.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Registration Closed Info */}
+        {!isFinalized && marketMakers.length > 0 && !showMMManagement && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-yellow-800">
+              Registration is open. {marketMakers.length} MM{marketMakers.length > 1 ? 's' : ''} registered. Click "Manage MMs" to add more or finalize.
+            </p>
+          </div>
+        )}
+
         {/* Transaction Status */}
         {pendingTransaction && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <div className={`border rounded-lg p-3 mb-4 ${
+            pendingTransaction.status === 'error' 
+              ? 'bg-red-50 border-red-200' 
+              : pendingTransaction.status === 'success'
+              ? 'bg-green-50 border-green-200'
+              : 'bg-blue-50 border-blue-200'
+          }`}>
             <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-              <span className="text-sm text-blue-800">
-                {pendingTransaction.status === 'pending' && 'Confirming transaction...'}
+              {pendingTransaction.status === 'pending' && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+              )}
+              {pendingTransaction.status === 'success' && (
+                <svg className="w-4 h-4 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {pendingTransaction.status === 'error' && (
+                <svg className="w-4 h-4 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              <span className={`text-sm ${
+                pendingTransaction.status === 'error' 
+                  ? 'text-red-800' 
+                  : pendingTransaction.status === 'success'
+                  ? 'text-green-800'
+                  : 'text-blue-800'
+              }`}>
+                {pendingTransaction.status === 'pending' && (
+                  pendingTransaction.type === 'register' ? 'Registering Market Maker...' :
+                  pendingTransaction.type === 'unregister' ? 'Removing Market Maker...' :
+                  pendingTransaction.type === 'finalize' ? 'Finalizing Market Makers...' :
+                  'Processing transaction...'
+                )}
+                {pendingTransaction.status === 'success' && (
+                  pendingTransaction.type === 'register' ? 'Market Maker registered successfully!' :
+                  pendingTransaction.type === 'unregister' ? 'Market Maker removed successfully!' :
+                  pendingTransaction.type === 'finalize' ? 'Market Makers finalized successfully!' :
+                  'Transaction completed!'
+                )}
                 {pendingTransaction.status === 'error' && `Error: ${pendingTransaction.error}`}
               </span>
             </div>
@@ -247,6 +340,19 @@ function ProjectCard({
                 Cancel
               </button>
             </div>
+            
+            {/* Allocation Info */}
+            {marketMakers.length > 0 && totalLiquidity > BigInt(0) && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                <p className="font-medium mb-1">Allocation Info:</p>
+                <p>Each MM will be able to borrow up to: 
+                  <span className="font-semibold ml-1">
+                    ${Number(formatUnits(totalLiquidity / BigInt(marketMakers.length), 6)).toLocaleString()}
+                  </span>
+                </p>
+                <p className="mt-1 text-blue-600">Total Pool / Number of MMs = Individual Allocation</p>
+              </div>
+            )}
           </div>
         )}
 
