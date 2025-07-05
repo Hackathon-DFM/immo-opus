@@ -205,20 +205,6 @@ export function MultiStepForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Debug Panel - Remove in production */}
-      <div className="mb-4 p-4 bg-gray-100 rounded-lg text-sm">
-        <h3 className="font-semibold mb-2">Debug Info:</h3>
-        <div className="space-y-1">
-          <div>Connected: {isConnected ? '✅' : '❌'}</div>
-          <div>Address: {address || 'Not connected'}</div>
-          <div>Chain ID: {chainId || 'Unknown'}</div>
-          <div>Expected Chain: 421614 (Arbitrum Sepolia)</div>
-          <div>ProjectFactory: {contractAddresses.projectFactory}</div>
-          <div>USDC: {contractAddresses.usdc}</div>
-          <div>Contract Configured: {contractAddresses.projectFactory !== '0x0000000000000000000000000000000000000000' ? '✅' : '❌'}</div>
-        </div>
-      </div>
-
       <div className="mb-8">
         <div className="flex items-center justify-between">
           {[1, 2, 3, 4].map((step) => (
