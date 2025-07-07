@@ -1,5 +1,5 @@
 import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import DirectPoolABI from '../contracts/DirectPool.json';
 // import { formatUnits } from 'viem'; // Removed unused import
 
@@ -289,6 +289,61 @@ export function useMarketMakers(poolAddress: `0x${string}`) {
       });
     }
   };
+
+  // Update pending transaction hash when available
+  useEffect(() => {
+    if (registerHash && pendingTx?.type === 'register' && pendingTx.hash === ('0x' as `0x${string}`)) {
+      setPendingTx(prev => prev ? { ...prev, hash: registerHash } : null);
+    }
+  }, [registerHash, pendingTx?.type, pendingTx?.hash]);
+
+  useEffect(() => {
+    if (unregisterHash && pendingTx?.type === 'unregister' && pendingTx.hash === ('0x' as `0x${string}`)) {
+      setPendingTx(prev => prev ? { ...prev, hash: unregisterHash } : null);
+    }
+  }, [unregisterHash, pendingTx?.type, pendingTx?.hash]);
+
+  useEffect(() => {
+    if (finalizeHash && pendingTx?.type === 'finalize' && pendingTx.hash === ('0x' as `0x${string}`)) {
+      setPendingTx(prev => prev ? { ...prev, hash: finalizeHash } : null);
+    }
+  }, [finalizeHash, pendingTx?.type, pendingTx?.hash]);
+
+  useEffect(() => {
+    if (emergencyHash && pendingTx?.type === 'emergency_withdraw' && pendingTx.hash === ('0x' as `0x${string}`)) {
+      setPendingTx(prev => prev ? { ...prev, hash: emergencyHash } : null);
+    }
+  }, [emergencyHash, pendingTx?.type, pendingTx?.hash]);
+
+  // Update pending transaction state when transactions complete
+  useEffect(() => {
+    if (isRegisterSuccess && pendingTx?.type === 'register') {
+      setPendingTx(prev => prev ? { ...prev, status: 'success' } : null);
+      // Clear after 3 seconds
+      setTimeout(() => setPendingTx(null), 3000);
+    }
+  }, [isRegisterSuccess, pendingTx?.type]);
+
+  useEffect(() => {
+    if (isUnregisterSuccess && pendingTx?.type === 'unregister') {
+      setPendingTx(prev => prev ? { ...prev, status: 'success' } : null);
+      setTimeout(() => setPendingTx(null), 3000);
+    }
+  }, [isUnregisterSuccess, pendingTx?.type]);
+
+  useEffect(() => {
+    if (isFinalizeSuccess && pendingTx?.type === 'finalize') {
+      setPendingTx(prev => prev ? { ...prev, status: 'success' } : null);
+      setTimeout(() => setPendingTx(null), 3000);
+    }
+  }, [isFinalizeSuccess, pendingTx?.type]);
+
+  useEffect(() => {
+    if (isEmergencySuccess && pendingTx?.type === 'emergency_withdraw') {
+      setPendingTx(prev => prev ? { ...prev, status: 'success' } : null);
+      setTimeout(() => setPendingTx(null), 3000);
+    }
+  }, [isEmergencySuccess, pendingTx?.type]);
 
   return {
     marketMakers,
