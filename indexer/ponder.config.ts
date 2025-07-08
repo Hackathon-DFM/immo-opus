@@ -1,6 +1,6 @@
 import { createConfig } from "ponder";
 
-import { ProjectFactoryABI, DirectPoolABI, BondingCurveABI } from "./abis/index.js";
+import { ProjectFactoryABI, DirectPoolABI, BondingCurveABI, ERC20TokenABI } from "./abis/index.js";
 
 export default createConfig({
   chains: {

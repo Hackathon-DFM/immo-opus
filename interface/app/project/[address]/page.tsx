@@ -2,10 +2,10 @@
 
 import { useParams } from 'next/navigation';
 import { TradingInterface } from '@/components/bonding-curve';
+import { DirectPoolDetails } from '@/components/direct-pool';
 import { isAddress } from 'viem';
-
-// Mock USDC address for Arbitrum Sepolia
-const MOCK_USDC_ADDRESS = '0x0000000000000000000000000000000000000000' as `0x${string}`;
+import { usePonderProject } from '@/lib/hooks/use-ponder-projects';
+import { CONTRACT_ADDRESSES } from '@/src/config/contracts';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -25,34 +25,44 @@ export default function ProjectDetailPage() {
     );
   }
 
-  // In a real app, you would fetch project details from the contract
-  // For now, we'll use mock data
-  const mockProjectData = {
-    tokenName: 'Sample Token',
-    tokenSymbol: 'SAMPLE',
-    poolMode: 'BONDING_CURVE',
-    bondingCurveAddress: projectAddress as `0x${string}`,
-  };
+  // Fetch project data from Ponder
+  const { data: project, isLoading } = usePonderProject(projectAddress as `0x${string}`);
 
-  if (mockProjectData.poolMode !== 'BONDING_CURVE') {
+  if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-yellow-900">Direct Pool Project</h2>
-          <p className="text-yellow-700 mt-2">
-            This project uses Direct Pool mode. Trading interface is not available for Direct Pool projects.
+        <div className="animate-pulse">
+          <div className="h-64 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-red-900">Project Not Found</h2>
+          <p className="text-red-700 mt-2">
+            The project with address {projectAddress} could not be found.
           </p>
         </div>
       </div>
     );
   }
 
-  return (
-    <TradingInterface
-      bondingCurveAddress={mockProjectData.bondingCurveAddress}
-      usdcAddress={MOCK_USDC_ADDRESS}
-      tokenName={mockProjectData.tokenName}
-      tokenSymbol={mockProjectData.tokenSymbol}
-    />
-  );
+  // Render appropriate interface based on pool mode
+  if (project.mode === 'BONDING_CURVE') {
+    return (
+      <TradingInterface
+        bondingCurveAddress={project.address as `0x${string}`}
+        usdcAddress={CONTRACT_ADDRESSES.usdc}
+        tokenName={project.token.name}
+        tokenSymbol={project.token.symbol}
+      />
+    );
+  } else {
+    // Direct Pool
+    return <DirectPoolDetails project={project} />;
+  }
 }

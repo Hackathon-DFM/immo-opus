@@ -1,10 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { formatUnits } from 'viem';
+import { usePonderAllProjects } from '../lib/hooks/use-ponder-projects';
 
 export default function Home() {
   const { isConnected } = useAccount();
+  const router = useRouter();
+  const [filter, setFilter] = useState<'all' | 'direct_pool' | 'bonding_curve'>('all');
+  
+  // Fetch all projects from Ponder
+  const { data: projects = [], isLoading } = usePonderAllProjects();
+  
+  // Filter projects based on selected filter
+  const filteredProjects = projects.filter(project => {
+    if (filter === 'all') return true;
+    if (filter === 'direct_pool') return project.mode === 'DIRECT_POOL';
+    if (filter === 'bonding_curve') return project.mode === 'BONDING_CURVE';
+    return true;
+  });
 
   return (
     <div className="space-y-8">
@@ -48,15 +65,112 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Projects List Placeholder */}
+      {/* Active Projects */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Active Projects</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">Active Projects</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${
+                  filter === 'all'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All Projects
+              </button>
+              <button
+                onClick={() => setFilter('direct_pool')}
+                className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${
+                  filter === 'direct_pool'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Direct Pool
+              </button>
+              <button
+                onClick={() => setFilter('bonding_curve')}
+                className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${
+                  filter === 'bonding_curve'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Bonding Curve
+              </button>
+            </div>
+          </div>
         </div>
         <div className="p-6">
-          <p className="text-gray-500 text-center py-8">
-            No projects yet. Be the first to create one!
-          </p>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 h-20 rounded-lg"></div>
+                </div>
+              ))}
+            </div>
+          ) : filteredProjects.length > 0 ? (
+            <div className="grid gap-4">
+              {filteredProjects.map((project) => (
+                <div
+                  key={project.address}
+                  onClick={() => router.push(`/project/${project.address}`)}
+                  className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {project.token.name || 'Unknown Token'}
+                        </h3>
+                        <span className="text-sm text-gray-500">
+                          ({project.token.symbol || 'UNK'})
+                        </span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          project.mode === 'BONDING_CURVE' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {project.mode.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {project.address.slice(0, 6)}...{project.address.slice(-4)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {project.mode === 'BONDING_CURVE' ? (
+                        <>
+                          <p className="text-sm text-gray-500">Current Price</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            ${project.currentPrice ? Number(formatUnits(BigInt(project.currentPrice), 6)).toFixed(4) : '0.0000'}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-500">Total Liquidity</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            ${project.totalLiquidity ? Number(formatUnits(BigInt(project.totalLiquidity), 6)).toLocaleString() : '0'}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">
+              {projects.length === 0 
+                ? "No projects yet. Be the first to create one!"
+                : `No ${filter === 'direct_pool' ? 'Direct Pool' : filter === 'bonding_curve' ? 'Bonding Curve' : ''} projects found.`
+              }
+            </p>
+          )}
         </div>
       </div>
     </div>

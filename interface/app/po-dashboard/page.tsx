@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
 import { usePonderProjectsByOwner } from '../../lib/hooks/use-ponder-projects';
@@ -26,9 +27,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ProjectCard({ 
-  project 
+  project,
+  router 
 }: { 
   project: Project;
+  router: any;
 }) {
   const [showMMManagement, setShowMMManagement] = useState(false);
   const [newMMAddress, setNewMMAddress] = useState('');
@@ -462,7 +465,9 @@ function ProjectCard({
       {/* Project Actions */}
       <div className="border-t pt-4 mt-4">
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
+          <button 
+            onClick={() => router.push(`/project/${project.address}`)}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
             View Details
           </button>
           <button className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-md hover:bg-gray-200">
@@ -482,6 +487,7 @@ function ProjectCard({
 export default function PODashboard() {
   const [filter, setFilter] = useState<'all' | 'active' | 'mm-registration' | 'graduated'>('all');
   const { address, isConnected } = useAccount();
+  const router = useRouter();
 
   // Get user's projects from Ponder
   const { data: projects = [], isLoading: isLoadingProjects } = usePonderProjectsByOwner(address);
@@ -532,7 +538,7 @@ export default function PODashboard() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Project Owner Dashboard</h1>
-        <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+        <button onClick={() => router.push('/create')} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
           Create New Project
         </button>
       </div>
@@ -638,6 +644,7 @@ export default function PODashboard() {
             <ProjectCard 
               key={project.address} 
               project={project}
+              router={router}
             />
           ))
         ) : projects.length === 0 ? (
@@ -649,7 +656,7 @@ export default function PODashboard() {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
             <p className="text-gray-600 mb-6">Get started by creating your first IMMO project.</p>
-            <button className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            <button onClick={() => router.push('/create')} className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
               Create Project
             </button>
           </div>

@@ -57,7 +57,7 @@ const GET_PROJECTS_BY_OWNER = gql`
 // GraphQL query to fetch all projects
 const GET_ALL_PROJECTS = gql`
   query GetAllProjects($limit: Int, $offset: Int) {
-    projects(limit: $limit, offset: $offset, orderBy: "createdTimestamp", orderDirection: "desc") {
+    projects(limit: $limit, offset: $offset, orderBy: "createdAt", orderDirection: "desc") {
       items {
         id
         address
@@ -140,14 +140,108 @@ export function usePonderAllProjects(limit = 100, offset = 0) {
     queryKey: ['ponder-all-projects', limit, offset],
     queryFn: async () => {
       try {
-        const data = await graphqlClient.request<AllProjectsResponse>(
-          GET_ALL_PROJECTS,
-          { limit, offset }
-        );
+        console.log('Fetching projects from Ponder...');
         
-        return data.projects.items;
+        // Try a working query that matches Ponder's schema
+        const workingQuery = gql`
+          query GetAllProjects {
+            projects {
+              items {
+                id
+                address
+                mode
+                tokenAddress
+                owner {
+                  id
+                  address
+                }
+                borrowTimeLimit
+                createdAt
+                totalLiquidity
+                isFinalized
+                initialPrice
+                targetMarketCap
+                graduated
+                currentPrice
+                virtualUSDCReserve
+                tokenReserve
+                token {
+                  id
+                  address
+                  name
+                  symbol
+                  decimals
+                  totalSupply
+                }
+              }
+            }
+          }
+        `;
+        
+        const data = await graphqlClient.request<any>(workingQuery);
+        console.log('Ponder response:', data);
+        
+        // Map the response to match our expected structure
+        if (data?.projects?.items) {
+          return data.projects.items.map((project: any) => ({
+            ...project,
+            registeredMMs: { items: [] }, // Add empty array for now
+          }));
+        }
+        
+        return [];
       } catch (error) {
         console.error('Error fetching all projects from Ponder:', error);
+        
+        // If token relation fails, try without it
+        try {
+          const minimalQuery = gql`
+            query GetMinimalProjects {
+              projects {
+                items {
+                  id
+                  address
+                  mode
+                  tokenAddress
+                  owner {
+                    id
+                    address
+                  }
+                  borrowTimeLimit
+                  createdAt
+                  totalLiquidity
+                  isFinalized
+                  initialPrice
+                  targetMarketCap
+                  graduated
+                  currentPrice
+                }
+              }
+            }
+          `;
+          
+          const minimalData = await graphqlClient.request<any>(minimalQuery);
+          console.log('Minimal response:', minimalData);
+          
+          // Return with placeholder token data
+          if (minimalData?.projects?.items) {
+            return minimalData.projects.items.map((project: any) => ({
+              ...project,
+              token: {
+                id: project.tokenAddress,
+                address: project.tokenAddress,
+                name: 'Token',
+                symbol: 'TKN',
+                decimals: 18,
+                totalSupply: '1000000000000000000000000000'
+              },
+              registeredMMs: { items: [] }
+            }));
+          }
+        } catch (minimalError) {
+          console.error('Minimal query also failed:', minimalError);
+        }
+        
         return [];
       }
     },
@@ -172,7 +266,9 @@ export function usePonderProject(projectAddress?: `0x${string}`) {
                 address
                 mode
                 tokenAddress
-                owner
+                owner {
+                  address
+                }
                 initialPrice
                 targetMarketCap
                 borrowTimeLimit
