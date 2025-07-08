@@ -92,8 +92,8 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
     },
   });
 
-  const maxBorrowAmount = mmAllocation && borrowedAmount 
-    ? ((mmAllocation as bigint) > (borrowedAmount as bigint) ? (mmAllocation as bigint) - (borrowedAmount as bigint) : BigInt(0))
+  const maxBorrowAmount = mmAllocation
+    ? (mmAllocation as bigint) - ((borrowedAmount as bigint) || BigInt(0))
     : BigInt(0);
 
   return {
@@ -106,13 +106,21 @@ export function useDirectPool(directPoolAddress: `0x${string}` | undefined) {
     initialPrice: initialPrice || BigInt(0),
     borrowTimeLimit: borrowTimeLimit || BigInt(0),
     borrowTimestamp: borrowTimestamp || BigInt(0),
-    timeRemaining: borrowTimestamp && borrowTimeLimit
-      ? Math.max(0, Number(borrowTimestamp) + Number(borrowTimeLimit) - Math.floor(Date.now() / 1000))
-      : 0,
+    timeRemaining:
+      borrowTimestamp && borrowTimeLimit
+        ? Math.max(
+            0,
+            Number(borrowTimestamp) +
+              Number(borrowTimeLimit) -
+              Math.floor(Date.now() / 1000)
+          )
+        : 0,
   };
 }
 
-export function useDirectPoolBorrow(directPoolAddress: `0x${string}` | undefined) {
+export function useDirectPoolBorrow(
+  directPoolAddress: `0x${string}` | undefined
+) {
   const { writeContractAsync, data: hash, isPending } = useWriteContract();
 
   const borrow = async (amount: string, decimals: number = 18) => {
@@ -131,7 +139,9 @@ export function useDirectPoolBorrow(directPoolAddress: `0x${string}` | undefined
   return { borrow, hash, isPending };
 }
 
-export function useDirectPoolRepay(directPoolAddress: `0x${string}` | undefined) {
+export function useDirectPoolRepay(
+  directPoolAddress: `0x${string}` | undefined
+) {
   const { writeContractAsync, data: hash, isPending } = useWriteContract();
 
   const repay = async (amount: string, decimals: number = 18) => {

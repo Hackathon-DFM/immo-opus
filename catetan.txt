@@ -1,0 +1,17 @@
+WORKING OBJECTIVE MM DASHBOARD:
+
+CURRENT POSITIONS:
+link ke view clob trading sementara dihilangkan dlu, diganti sama tombol buat repay (di kolom action)
+
+kolom current balance itu digantikan sama text yang bunyinya connected to clob
+
+p&l dimocked dlu
+
+WHITELISTED PROJECT:
+tulisan available projects diganti sama whitelisted project
+
+token yang bisa dipinjam belum difilter --> harus difilter supaya token yang muncul adalah token yang udh bisa dipinjem sama si mm (ini berarti harus buat token baru sementara biar bisa dikerjain soalnya cuma project owner yg bisa assign mm)
+
+allocation diganti sama total allocation
+
+kolom action diisi dengan button borrow --> pas dipencet nnti muncul popup yang isinya adalah jumlah nominal yang mau diborrow sama clob nya apa (untuk sementara diisi dengan gtx --> dropdown tpi disabled aja supaya gabisa dirubah apa-apa tpi harus kebaca gtx)
