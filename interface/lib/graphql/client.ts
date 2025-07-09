@@ -19,26 +19,12 @@ export interface ProjectOwner {
   };
 }
 
-export interface Token {
-  id: string;
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  totalSupply: string;
-  projectOwner: string;
-  poolAddress: string;
-  createdBy: string;
-  createdBlock: string;
-  createdTimestamp: string;
-  createdTxHash: string;
-}
+// Token interface removed - token data is fetched directly from blockchain
 
 export interface Project {
   id: string;
   address: string;
   tokenAddress: string;
-  token: Token;
   owner: string;
   mode: 'DIRECT_POOL' | 'BONDING_CURVE';
   initialPrice?: string;
@@ -56,6 +42,7 @@ export interface Project {
   currentPrice?: string;
   tokenReserve?: string;
   virtualUSDCReserve?: string;
+  lastUpdated?: number;
   registeredMMs: {
     items: RegisteredMM[];
   };

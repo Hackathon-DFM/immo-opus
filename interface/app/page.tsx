@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatUnits } from 'viem';
 import { usePonderAllProjects } from '../lib/hooks/use-ponder-projects';
+import { useMultipleTokenMetadata } from '../lib/hooks/use-token-metadata';
 
 export default function Home() {
   const { isConnected } = useAccount();
@@ -14,6 +15,18 @@ export default function Home() {
   
   // Fetch all projects from Ponder
   const { data: projects = [], isLoading } = usePonderAllProjects();
+  
+  // Fetch token metadata for all projects
+  const tokenAddresses = projects.map(p => p.tokenAddress as `0x${string}`);
+  const { data: tokenMetadataList = [] } = useMultipleTokenMetadata(tokenAddresses);
+  
+  // Create a map for easy lookup
+  const tokenMetadataMap = tokenMetadataList.reduce((acc, metadata, index) => {
+    if (metadata && projects[index]) {
+      acc[projects[index].tokenAddress] = metadata;
+    }
+    return acc;
+  }, {} as Record<string, any>);
   
   // Filter projects based on selected filter
   const filteredProjects = projects.filter(project => {
@@ -125,10 +138,10 @@ export default function Home() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          {project.token.name || 'Unknown Token'}
+                          {tokenMetadataMap[project.tokenAddress]?.name || 'Loading...'}
                         </h3>
                         <span className="text-sm text-gray-500">
-                          ({project.token.symbol || 'UNK'})
+                          ({tokenMetadataMap[project.tokenAddress]?.symbol || '...'})
                         </span>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           project.mode === 'BONDING_CURVE' 

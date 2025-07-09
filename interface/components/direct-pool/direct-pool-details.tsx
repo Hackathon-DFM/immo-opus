@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
 import { Project } from '@/lib/graphql/client';
 import { useMarketMakers } from '@/lib/hooks/use-market-makers';
+import { useTokenMetadata } from '@/lib/hooks/use-token-metadata';
 
 interface DirectPoolDetailsProps {
   project: Project;
@@ -13,6 +14,9 @@ interface DirectPoolDetailsProps {
 export function DirectPoolDetails({ project }: DirectPoolDetailsProps) {
   const { address: userAddress } = useAccount();
   const [userRole, setUserRole] = useState<'owner' | 'mm' | 'user'>('user');
+  
+  // Fetch token metadata in real-time
+  const { data: tokenMetadata } = useTokenMetadata(project.tokenAddress as `0x${string}`);
 
   // Get MM data for this project
   const { 
@@ -58,10 +62,10 @@ export function DirectPoolDetails({ project }: DirectPoolDetailsProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {project.token.name}
+              {tokenMetadata?.name || 'Loading...'}
             </h1>
             <p className="text-lg text-gray-600">
-              {project.token.symbol} • Direct Pool
+              {tokenMetadata?.symbol || '...'} • Direct Pool
             </p>
           </div>
           <div className="text-right">
@@ -125,7 +129,7 @@ export function DirectPoolDetails({ project }: DirectPoolDetailsProps) {
           <div>
             <p className="text-sm font-medium text-gray-500">Total Supply</p>
             <p className="text-lg font-semibold text-gray-900">
-              {project.token.totalSupply ? Number(formatUnits(BigInt(project.token.totalSupply), 18)).toLocaleString() : '0'} {project.token.symbol}
+              {tokenMetadata?.totalSupply ? Number(formatUnits(tokenMetadata.totalSupply, tokenMetadata.decimals || 18)).toLocaleString() : '0'} {tokenMetadata?.symbol || '...'}
             </p>
           </div>
           <div>
