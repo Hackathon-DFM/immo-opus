@@ -30,14 +30,7 @@ const GET_PROJECTS_BY_OWNER = gql`
             numberOfMMs
             isFinalized
             graduated
-            token {
-              id
-              address
-              name
-              symbol
-              decimals
-              totalSupply
-            }
+            lastUpdated
             registeredMMs {
               items {
                 id
@@ -132,6 +125,8 @@ export function usePonderProjectsByOwner(ownerAddress?: `0x${string}`) {
     enabled: !!ownerAddress,
     refetchInterval: 10000, // Refetch every 10 seconds
     staleTime: 5000, // Consider data stale after 5 seconds
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -165,14 +160,7 @@ export function usePonderAllProjects(limit = 100, offset = 0) {
                 currentPrice
                 virtualUSDCReserve
                 tokenReserve
-                token {
-                  id
-                  address
-                  name
-                  symbol
-                  decimals
-                  totalSupply
-                }
+                lastUpdated
               }
             }
           }
@@ -247,6 +235,8 @@ export function usePonderAllProjects(limit = 100, offset = 0) {
     },
     refetchInterval: 10000, // Refetch every 10 seconds
     staleTime: 5000, // Consider data stale after 5 seconds
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -280,14 +270,6 @@ export function usePonderProject(projectAddress?: `0x${string}`) {
                 numberOfMMs
                 isFinalized
                 graduated
-                token {
-                  id
-                  address
-                  name
-                  symbol
-                  decimals
-                  totalSupply
-                }
                 registeredMMs {
                   items {
                     id
@@ -316,5 +298,7 @@ export function usePonderProject(projectAddress?: `0x${string}`) {
     enabled: !!projectAddress,
     refetchInterval: 10000, // Refetch every 10 seconds
     staleTime: 5000, // Consider data stale after 5 seconds
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }

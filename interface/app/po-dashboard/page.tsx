@@ -7,6 +7,7 @@ import { formatUnits } from 'viem';
 import { usePonderProjectsByOwner } from '../../lib/hooks/use-ponder-projects';
 import { useMarketMakers } from '../../lib/hooks/use-market-makers';
 import { Project } from '../../lib/graphql/client';
+import { useTokenMetadata } from '../../lib/hooks/use-token-metadata';
 
 
 function StatusBadge({ status }: { status: string }) {
@@ -35,6 +36,9 @@ function ProjectCard({
 }) {
   const [showMMManagement, setShowMMManagement] = useState(false);
   const [newMMAddress, setNewMMAddress] = useState('');
+  
+  // Fetch token metadata in real-time
+  const { data: tokenMetadata } = useTokenMetadata(project.tokenAddress as `0x${string}`);
 
   // Only use market makers hook for DirectPool projects
   const isDirectPool = project.mode === 'DIRECT_POOL';
@@ -147,10 +151,10 @@ function ProjectCard({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {project.token.name || 'Unknown Token'}
+            {tokenMetadata?.name || 'Loading...'}
           </h3>
           <p className="text-sm text-gray-600">
-            {project.token.symbol || 'UNK'} • {project.mode.replace('_', ' ')}
+            {tokenMetadata?.symbol || '...'} • {project.mode.replace('_', ' ')}
           </p>
           <p className="text-xs text-gray-400 mt-1">
             {project.address.slice(0, 6)}...{project.address.slice(-4)}

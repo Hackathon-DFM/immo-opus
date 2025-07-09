@@ -6,6 +6,7 @@ import { DirectPoolDetails } from '@/components/direct-pool';
 import { isAddress } from 'viem';
 import { usePonderProject } from '@/lib/hooks/use-ponder-projects';
 import { CONTRACT_ADDRESSES } from '@/src/config/contracts';
+import { useTokenMetadata } from '@/lib/hooks/use-token-metadata';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -27,6 +28,9 @@ export default function ProjectDetailPage() {
 
   // Fetch project data from Ponder
   const { data: project, isLoading } = usePonderProject(projectAddress as `0x${string}`);
+  
+  // Fetch token metadata in real-time
+  const { data: tokenMetadata } = useTokenMetadata(project?.tokenAddress as `0x${string}`);
 
   if (isLoading) {
     return (
@@ -57,8 +61,8 @@ export default function ProjectDetailPage() {
       <TradingInterface
         bondingCurveAddress={project.address as `0x${string}`}
         usdcAddress={CONTRACT_ADDRESSES.usdc}
-        tokenName={project.token.name}
-        tokenSymbol={project.token.symbol}
+        tokenName={tokenMetadata?.name || 'Loading...'}
+        tokenSymbol={tokenMetadata?.symbol || '...'}
       />
     );
   } else {
