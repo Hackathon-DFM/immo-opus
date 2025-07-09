@@ -29,6 +29,7 @@ export const project = onchainTable("project", (t) => ({
   createdAt: t.integer().notNull(),
   createdBlock: t.bigint().notNull(),
   createdTxHash: t.hex().notNull(),
+  lastUpdated: t.integer().notNull(),
   
   // DirectPool specific
   totalLiquidity: t.bigint(),
@@ -84,6 +85,19 @@ export const clob = onchainTable("clob", (t) => ({
   addedAt: t.integer().notNull(),
 }));
 
+export const tradingActivity = onchainTable("tradingActivity", (t) => ({
+  id: t.text().primaryKey(), // `${projectAddress}-${txHash}-${logIndex}`
+  projectAddress: t.hex().notNull(),
+  trader: t.hex().notNull(),
+  type: t.text().notNull(), // "BUY" or "SELL"
+  tokenAmount: t.bigint().notNull(),
+  usdcAmount: t.bigint().notNull(),
+  price: t.bigint().notNull(), // Price at time of trade
+  timestamp: t.integer().notNull(),
+  txHash: t.hex().notNull(),
+  blockNumber: t.bigint().notNull(),
+}));
+
 // Define relations
 export const projectOwnerRelations = relations(projectOwner, ({ many }) => ({
   projects: many(project),
@@ -105,6 +119,7 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   registeredMMs: many(registeredMM),
   borrows: many(borrow),
   supportedClobs: many(supportedClob),
+  tradingActivities: many(tradingActivity),
 }));
 
 export const registeredMMRelations = relations(registeredMM, ({ one, many }) => ({
@@ -139,4 +154,11 @@ export const supportedClobRelations = relations(supportedClob, ({ one }) => ({
 
 export const clobRelations = relations(clob, ({ many }) => ({
   supportedProjects: many(supportedClob),
+}));
+
+export const tradingActivityRelations = relations(tradingActivity, ({ one }) => ({
+  project: one(project, {
+    fields: [tradingActivity.projectAddress],
+    references: [project.id],
+  }),
 }));

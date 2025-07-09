@@ -1,5 +1,5 @@
 import { ponder } from "ponder:registry";
-import { project, projectOwner, token } from "ponder:schema";
+import { project, projectOwner, token, registeredMM, borrow, tradingActivity } from "ponder:schema";
 
 // Handle ProjectCreated events from ProjectFactory
 ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
@@ -24,90 +24,17 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
       lastUpdated: Number(block.timestamp),
     }));
   
-  // Fetch token metadata from the ERC20 contract
-  let tokenName = "Unknown";
-  let tokenSymbol = "UNK";
-  let tokenDecimals = 18;
-  let tokenTotalSupply = 0n;
-
-  try {
-    // Read token metadata from the blockchain
-    const nameResult = await context.client.readContract({
-      address: tokenAddress,
-      abi: [
-        {
-          name: "name",
-          type: "function",
-          stateMutability: "view",
-          inputs: [],
-          outputs: [{ name: "", type: "string" }],
-        },
-      ],
-      functionName: "name",
-    });
-    tokenName = nameResult as string;
-
-    const symbolResult = await context.client.readContract({
-      address: tokenAddress,
-      abi: [
-        {
-          name: "symbol",
-          type: "function",
-          stateMutability: "view",
-          inputs: [],
-          outputs: [{ name: "", type: "string" }],
-        },
-      ],
-      functionName: "symbol",
-    });
-    tokenSymbol = symbolResult as string;
-
-    const decimalsResult = await context.client.readContract({
-      address: tokenAddress,
-      abi: [
-        {
-          name: "decimals",
-          type: "function",
-          stateMutability: "view",
-          inputs: [],
-          outputs: [{ name: "", type: "uint8" }],
-        },
-      ],
-      functionName: "decimals",
-    });
-    tokenDecimals = Number(decimalsResult);
-
-    const totalSupplyResult = await context.client.readContract({
-      address: tokenAddress,
-      abi: [
-        {
-          name: "totalSupply",
-          type: "function",
-          stateMutability: "view",
-          inputs: [],
-          outputs: [{ name: "", type: "uint256" }],
-        },
-      ],
-      functionName: "totalSupply",
-    });
-    tokenTotalSupply = BigInt(totalSupplyResult as string);
-
-    console.log(`📊 Token metadata fetched: ${tokenName} (${tokenSymbol}), decimals: ${tokenDecimals}, totalSupply: ${tokenTotalSupply}`);
-  } catch (error) {
-    console.error(`Failed to fetch token metadata for ${tokenAddress}:`, error);
-  }
-
-  // Create token record with fetched metadata
+  // Create token record with address only (frontend will fetch metadata)
   await context.db
     .insert(token)
     .values({
       id: tokenAddress, // id is same as address
       address: tokenAddress,
-      name: tokenName,
-      symbol: tokenSymbol,
-      decimals: tokenDecimals,
-      totalSupply: tokenTotalSupply,
-      isNewlyCreated: true, // Assume newly created for now, can be refined
+      name: "Unknown", // Frontend will fetch this
+      symbol: "UNK", // Frontend will fetch this
+      decimals: 18, // Default, frontend will fetch actual value
+      totalSupply: 0n, // Frontend will fetch this
+      isNewlyCreated: true, // Assume newly created for now
       createdAt: Number(block.timestamp),
     })
     .onConflictDoNothing();
@@ -122,6 +49,7 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
     createdAt: Number(block.timestamp),
     createdBlock: block.number,
     createdTxHash: transaction.hash,
+    lastUpdated: Number(block.timestamp),
     // Default values for nullable fields
     borrowTimeLimit: 0,
     initialPrice: null,
@@ -137,151 +65,20 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
     virtualUSDCReserve: null,
   };
 
+  // Mode-specific default values - frontend will fetch actual values
   if (mode === 0) { // DIRECT_POOL
-    try {
-      // Read borrowTimeLimit
-      const borrowTimeLimitResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "borrowTimeLimit",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ],
-        functionName: "borrowTimeLimit",
-      });
-      projectData.borrowTimeLimit = Number(borrowTimeLimitResult);
-
-      // Read initialPrice
-      const initialPriceResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "initialPrice",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ],
-        functionName: "initialPrice",
-      });
-      projectData.initialPrice = BigInt(initialPriceResult as string);
-
-      // Read totalLiquidity
-      const totalLiquidityResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "totalLiquidity",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ],
-        functionName: "totalLiquidity",
-      });
-      projectData.totalLiquidity = BigInt(totalLiquidityResult as string);
-
-      // Read isFinalized
-      const isFinalizedResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "isFinalized",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "bool" }],
-          },
-        ],
-        functionName: "isFinalized",
-      });
-      projectData.isFinalized = Boolean(isFinalizedResult);
-
-      console.log(`📊 DirectPool properties: borrowTimeLimit=${projectData.borrowTimeLimit}s, initialPrice=${projectData.initialPrice}, totalLiquidity=${projectData.totalLiquidity}`);
-    } catch (error) {
-      console.error(`Failed to fetch DirectPool properties for ${projectAddress}:`, error);
-    }
+    projectData.borrowTimeLimit = 86400; // Default 1 day, frontend will fetch actual
+    projectData.initialPrice = 0n; // Frontend will fetch
+    projectData.totalLiquidity = 0n; // Frontend will fetch
+    projectData.availableLiquidity = 0n; // Frontend will fetch
+    projectData.isFinalized = false; // Frontend will fetch
+    projectData.numberOfMMs = 0; // Will be updated by MM events
   } else if (mode === 1) { // BONDING_CURVE
-    try {
-      // Read targetMarketCap
-      const targetMarketCapResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "targetMarketCap",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ],
-        functionName: "targetMarketCap",
-      });
-      projectData.targetMarketCap = BigInt(targetMarketCapResult as string);
-
-      // Read virtualUSDCReserve
-      const virtualUSDCReserveResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "virtualUSDCReserve",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ],
-        functionName: "virtualUSDCReserve",
-      });
-      projectData.virtualUSDCReserve = BigInt(virtualUSDCReserveResult as string);
-
-      // Read tokenReserve
-      const tokenReserveResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "tokenReserve",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ],
-        functionName: "tokenReserve",
-      });
-      projectData.tokenReserve = BigInt(tokenReserveResult as string);
-
-      // Read graduated status
-      const graduatedResult = await context.client.readContract({
-        address: projectAddress,
-        abi: [
-          {
-            name: "graduated",
-            type: "function",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ name: "", type: "bool" }],
-          },
-        ],
-        functionName: "graduated",
-      });
-      projectData.graduated = Boolean(graduatedResult);
-
-      // Calculate current price (virtualUSDCReserve / tokenReserve * 10^18)
-      if (projectData.tokenReserve > 0n) {
-        projectData.currentPrice = (projectData.virtualUSDCReserve * BigInt(1e18)) / projectData.tokenReserve;
-      }
-
-      console.log(`📊 BondingCurve properties: targetMarketCap=${projectData.targetMarketCap}, graduated=${projectData.graduated}`);
-    } catch (error) {
-      console.error(`Failed to fetch BondingCurve properties for ${projectAddress}:`, error);
-    }
+    projectData.targetMarketCap = 0n; // Frontend will fetch
+    projectData.virtualUSDCReserve = 0n; // Frontend will fetch  
+    projectData.tokenReserve = 0n; // Frontend will fetch
+    projectData.graduated = false; // Will be updated by Graduated event
+    projectData.currentPrice = 0n; // Frontend will fetch
   }
 
   // Create the project record with all fetched data
@@ -291,3 +88,204 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
   
   console.log(`📦 New ${modeString} project created: ${projectAddress} by ${owner}, token: ${tokenAddress}`);
 });
+
+// NOTE: BondingCurve and DirectPool event handlers are commented out
+// because the factory pattern is not supported in Ponder 0.11.24
+// These will need to be enabled when upgrading to a newer version of Ponder
+// that supports the factory pattern for dynamically created contracts
+
+/*
+// Handle BondingCurve TokensPurchased event
+ponder.on("BondingCurve:TokensPurchased", async ({ event, context }) => {
+  const { buyer, usdcAmount, tokensReceived } = event.args;
+  const { block, transaction, log } = event;
+  const projectAddress = event.log.address;
+  
+  // Calculate price at time of trade (usdcAmount / tokensReceived * 10^18)
+  const price = tokensReceived > 0n ? (usdcAmount * BigInt(1e18)) / tokensReceived : 0n;
+  
+  // Create trading activity record
+  await context.db
+    .insert(tradingActivity)
+    .values({
+      id: `${projectAddress}-${transaction.hash}-${log.logIndex}`,
+      projectAddress,
+      trader: buyer,
+      type: "BUY",
+      tokenAmount: tokensReceived,
+      usdcAmount,
+      price,
+      timestamp: Number(block.timestamp),
+      txHash: transaction.hash,
+      blockNumber: block.number,
+    });
+  
+  // Update project lastUpdated
+  await context.db
+    .update(project, { id: projectAddress })
+    .set({ lastUpdated: Number(block.timestamp) });
+  
+  console.log(`🛒 Tokens purchased on ${projectAddress}: ${tokensReceived} tokens for ${usdcAmount} USDC by ${buyer}`);
+});
+
+// Handle BondingCurve TokensSold event
+ponder.on("BondingCurve:TokensSold", async ({ event, context }) => {
+  const { seller, tokenAmount, usdcReceived } = event.args;
+  const { block, transaction, log } = event;
+  const projectAddress = event.log.address;
+  
+  // Calculate price at time of trade (usdcReceived / tokenAmount * 10^18)
+  const price = tokenAmount > 0n ? (usdcReceived * BigInt(1e18)) / tokenAmount : 0n;
+  
+  // Create trading activity record
+  await context.db
+    .insert(tradingActivity)
+    .values({
+      id: `${projectAddress}-${transaction.hash}-${log.logIndex}`,
+      projectAddress,
+      trader: seller,
+      type: "SELL",
+      tokenAmount,
+      usdcAmount: usdcReceived,
+      price,
+      timestamp: Number(block.timestamp),
+      txHash: transaction.hash,
+      blockNumber: block.number,
+    });
+  
+  // Update project lastUpdated
+  await context.db
+    .update(project, { id: projectAddress })
+    .set({ lastUpdated: Number(block.timestamp) });
+  
+  console.log(`💰 Tokens sold on ${projectAddress}: ${tokenAmount} tokens for ${usdcReceived} USDC by ${seller}`);
+});
+
+// Handle BondingCurve Graduated event
+ponder.on("BondingCurve:Graduated", async ({ event, context }) => {
+  const { finalMarketCap } = event.args;
+  const { block } = event;
+  const projectAddress = event.log.address;
+  
+  // Update project graduated status and final market cap
+  await context.db
+    .update(project, { id: projectAddress })
+    .set({ 
+      graduated: true,
+      currentMarketCap: finalMarketCap,
+      lastUpdated: Number(block.timestamp),
+    });
+  
+  console.log(`🎓 BondingCurve graduated at ${projectAddress} with final market cap: ${finalMarketCap}`);
+});
+
+// Handle DirectPool MMRegistered event
+ponder.on("DirectPool:MMRegistered", async ({ event, context }) => {
+  const { mm } = event.args;
+  const { block } = event;
+  const projectAddress = event.log.address;
+  
+  // Create or update registeredMM record
+  await context.db
+    .insert(registeredMM)
+    .values({
+      id: `${projectAddress}-${mm}`,
+      projectAddress,
+      mmAddress: mm,
+      registeredAt: Number(block.timestamp),
+      isActive: true,
+      lastUpdated: Number(block.timestamp),
+    })
+    .onConflictDoUpdate({
+      isActive: true,
+      lastUpdated: Number(block.timestamp),
+    });
+  
+  // Update project lastUpdated (numberOfMMs will be tracked by counting registeredMM records)
+  await context.db
+    .update(project, { id: projectAddress })
+    .set({ 
+      lastUpdated: Number(block.timestamp),
+    });
+  
+  console.log(`🤝 MM registered at ${projectAddress}: ${mm}`);
+});
+
+// Handle DirectPool MMsFinalized event
+ponder.on("DirectPool:MMsFinalized", async ({ event, context }) => {
+  const { block } = event;
+  const projectAddress = event.log.address;
+  
+  // Update project finalization status
+  await context.db
+    .update(project, { id: projectAddress })
+    .set({ 
+      isFinalized: true,
+      lastUpdated: Number(block.timestamp),
+    });
+  
+  console.log(`✅ Pool finalized at ${projectAddress}`);
+});
+
+// Handle DirectPool TokensBorrowed event
+ponder.on("DirectPool:TokensBorrowed", async ({ event, context }) => {
+  const { mm, amount } = event.args;
+  const { block, transaction } = event;
+  const projectAddress = event.log.address;
+  
+  // Get project to fetch borrowTimeLimit
+  const projectData = await context.db.find(project, { id: projectAddress });
+  
+  // Create borrow record
+  await context.db
+    .insert(borrow)
+    .values({
+      id: `${projectAddress}-${mm}-${block.timestamp}`,
+      projectAddress,
+      mmAddress: mm,
+      borrowedAmount: amount,
+      borrowTimestamp: Number(block.timestamp),
+      borrowTimeLimit: projectData?.borrowTimeLimit || 0,
+      repaidAmount: null,
+      repaidAt: null,
+      isRepaid: false,
+      txHash: transaction.hash,
+    });
+  
+  // Update project available liquidity (subtract borrowed amount)
+  if (projectData && projectData.availableLiquidity !== null) {
+    await context.db
+      .update(project, { id: projectAddress })
+      .set({ 
+        availableLiquidity: projectData.availableLiquidity - amount,
+        lastUpdated: Number(block.timestamp),
+      });
+  }
+  
+  console.log(`📤 Tokens borrowed from ${projectAddress}: ${amount} by ${mm}`);
+});
+
+// Handle DirectPool TokensRepaid event  
+ponder.on("DirectPool:TokensRepaid", async ({ event, context }) => {
+  const { mm, amount } = event.args;
+  const { block } = event;
+  const projectAddress = event.log.address;
+  
+  // Note: In a real implementation, we'd need to track which specific borrow is being repaid
+  // For now, we'll create a new borrow record for the repayment
+  // This is a limitation of not having a proper borrow ID tracking system
+  
+  // Update project available liquidity (add repaid amount)
+  const projectData = await context.db.find(project, { id: projectAddress });
+  if (projectData && projectData.availableLiquidity !== null) {
+    await context.db
+      .update(project, { id: projectAddress })
+      .set({ 
+        availableLiquidity: projectData.availableLiquidity + amount,
+        lastUpdated: Number(block.timestamp),
+      });
+  }
+  
+  console.log(`📥 Tokens returned to ${projectAddress}: ${amount} by ${mm}`);
+});
+*/
