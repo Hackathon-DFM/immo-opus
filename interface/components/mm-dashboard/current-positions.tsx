@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
 import { useAllProjects } from '@/lib/hooks/use-projects';
-import { useDirectPool, useTokenInfo, useTokenBalance } from '@/lib/hooks/use-direct-pool';
+import {
+  useDirectPool,
+  useTokenInfo,
+  useTokenBalance,
+} from '@/lib/hooks/use-direct-pool';
 import { RepayModal } from './repay-modal';
 
 interface PositionRowProps {
@@ -30,15 +34,19 @@ function PositionRow({ projectAddress, onRepay }: PositionRowProps) {
   const borrowedFormatted = formatUnits(borrowedAmount as bigint, decimals);
   const balanceFormatted = formatUnits(tokenBalance as bigint, decimals);
   const priceFormatted = formatUnits(initialPrice as bigint, 6);
-  const borrowedValue = parseFloat(borrowedFormatted) * parseFloat(priceFormatted);
+  const borrowedValue =
+    parseFloat(borrowedFormatted) * parseFloat(priceFormatted);
 
   const timeRemainingDays = Math.floor(timeRemaining / (24 * 60 * 60));
-  const timeRemainingHours = Math.floor((timeRemaining % (24 * 60 * 60)) / (60 * 60));
+  const timeRemainingHours = Math.floor(
+    (timeRemaining % (24 * 60 * 60)) / (60 * 60)
+  );
   const isExpired = timeRemaining <= 0;
   const isUrgent = timeRemainingDays < 1;
 
   // Calculate P&L (simplified - in real app would track actual trading P&L)
-  const currentValue = parseFloat(balanceFormatted) * parseFloat(priceFormatted);
+  const currentValue =
+    parseFloat(balanceFormatted) * parseFloat(priceFormatted);
   const pnl = currentValue - borrowedValue;
   const pnlPercentage = (pnl / borrowedValue) * 100;
 
@@ -62,25 +70,32 @@ function PositionRow({ projectAddress, onRepay }: PositionRowProps) {
       <td className="px-6 py-4 whitespace-nowrap text-sm">
         <div className="flex items-center space-x-1">
           <span className={pnl >= 0 ? 'text-green-600' : 'text-red-600'}>
-            {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}
+            {pnl >= 0 ? '+' : ''}
+            {pnl.toFixed(2)}
           </span>
-          <span className={`text-xs ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            ({pnlPercentage >= 0 ? '+' : ''}{pnlPercentage.toFixed(2)}%)
+          <span
+            className={`text-xs ${
+              pnl >= 0 ? 'text-green-600' : 'text-red-600'
+            }`}
+          >
+            ({pnlPercentage >= 0 ? '+' : ''}
+            {pnlPercentage.toFixed(2)}%)
           </span>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          isExpired 
-            ? 'bg-red-100 text-red-800' 
-            : isUrgent 
-            ? 'bg-yellow-100 text-yellow-800'
-            : 'bg-green-100 text-green-800'
-        }`}>
-          {isExpired 
-            ? 'Expired' 
-            : `${timeRemainingDays}d ${timeRemainingHours}h`
-          }
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${
+            isExpired
+              ? 'bg-red-100 text-red-800'
+              : isUrgent
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-green-100 text-green-800'
+          }`}
+        >
+          {isExpired
+            ? 'Expired'
+            : `${timeRemainingDays}d ${timeRemainingHours}h`}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -98,10 +113,12 @@ function PositionRow({ projectAddress, onRepay }: PositionRowProps) {
 export function CurrentPositions() {
   const { address } = useAccount();
   const { projects } = useAllProjects();
-  const [selectedProject, setSelectedProject] = useState<`0x${string}` | null>(null);
+  const [selectedProject, setSelectedProject] = useState<`0x${string}` | null>(
+    null
+  );
 
   // Filter only Direct Pool projects
-  const directPoolProjects = projects.filter(p => p.mode === 'DIRECT_POOL');
+  const directPoolProjects = projects.filter((p) => p.mode === 'DIRECT_POOL');
 
   const handleRepay = (projectAddress: `0x${string}`) => {
     setSelectedProject(projectAddress);
@@ -114,8 +131,12 @@ export function CurrentPositions() {
   if (!address) {
     return (
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Current Positions</h2>
-        <p className="text-gray-500 text-center py-8">Connect wallet to view positions</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Current Positions
+        </h2>
+        <p className="text-gray-500 text-center py-8">
+          Connect wallet to view positions
+        </p>
       </div>
     );
   }
@@ -124,7 +145,9 @@ export function CurrentPositions() {
     <>
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Current Positions</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Current Positions
+          </h2>
         </div>
 
         <div className="overflow-x-auto">
@@ -171,9 +194,12 @@ export function CurrentPositions() {
             <span className="text-gray-600">
               Positions shown are for Direct Pool projects only
             </span>
-            <button className="text-blue-600 hover:text-blue-700 font-medium">
+            {/* <button className="text-blue-600 hover:text-blue-700 font-medium">
+              Repay
+            </button> */}
+            {/* <button className="text-blue-600 hover:text-blue-700 font-medium">
               View CLOB Trading →
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

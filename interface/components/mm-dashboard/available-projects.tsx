@@ -10,23 +10,43 @@ interface ProjectRowProps {
   onSelect: (address: `0x${string}`) => void;
 }
 
+// Wrapper component that only renders registered projects
+function WhitelistedProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
+  const { isRegistered } = useDirectPool(projectAddress);
+  
+  // Only render if MM is registered for this project
+  if (!isRegistered) {
+    return null;
+  }
+  
+  return <ProjectRow projectAddress={projectAddress} onSelect={onSelect} />;
+}
+
 function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
-  const { 
-    isRegistered, 
-    isFinalized, 
-    mmAllocation, 
+  const {
+    isRegistered,
+    isFinalized,
+    mmAllocation,
     tokenAddress,
     initialPrice,
     borrowedAmount,
-    maxBorrowAmount
+    maxBorrowAmount,
   } = useDirectPool(projectAddress);
-  
+
   const { name, symbol } = useTokenInfo(tokenAddress);
 
-  const allocationFormatted = mmAllocation ? formatUnits(mmAllocation as bigint, 18) : '0';
-  const borrowedFormatted = borrowedAmount ? formatUnits(borrowedAmount as bigint, 18) : '0';
-  const availableFormatted = maxBorrowAmount ? formatUnits(maxBorrowAmount as bigint, 18) : '0';
-  const priceFormatted = initialPrice ? formatUnits(initialPrice as bigint, 6) : '0';
+  const allocationFormatted = mmAllocation
+    ? formatUnits(mmAllocation as bigint, 18)
+    : '0';
+  const borrowedFormatted = borrowedAmount
+    ? formatUnits(borrowedAmount as bigint, 18)
+    : '0';
+  const availableFormatted = maxBorrowAmount
+    ? formatUnits(maxBorrowAmount as bigint, 18)
+    : '0';
+  const priceFormatted = initialPrice
+    ? formatUnits(initialPrice as bigint, 6)
+    : '0';
 
   const canBorrow = isRegistered && isFinalized && maxBorrowAmount > BigInt(0);
 
@@ -45,15 +65,19 @@ function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
         {parseFloat(allocationFormatted).toLocaleString()}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {parseFloat(availableFormatted).toLocaleString()}
+        {(
+          parseFloat(availableFormatted) - parseFloat(borrowedFormatted)
+        ).toLocaleString()}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center space-x-2">
+          {/* Not Registered badge commented out - all shown projects are registered now
           {!isRegistered && (
             <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
               Not Registered
             </span>
           )}
+          */}
           {isRegistered && !isFinalized && (
             <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
               Pending Finalization
@@ -76,7 +100,10 @@ function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
               : 'text-gray-400 cursor-not-allowed'
           }`}
         >
-          {canBorrow ? 'Borrow' : isRegistered ? 'No Allocation' : 'Not Available'}
+          {canBorrow
+            ? 'Borrow'
+            : 'No Allocation'
+            /* Removed 'Not Available' option since we only show registered projects now */}
         </button>
       </td>
     </tr>
@@ -87,12 +114,36 @@ interface AvailableProjectsProps {
   onSelectProject: (address: `0x${string}`) => void;
 }
 
+// Component to render whitelisted projects with empty state handling
+function WhitelistedProjectsList({ 
+  projects, 
+  onSelectProject 
+}: { 
+  projects: { address: `0x${string}` }[], 
+  onSelectProject: (address: `0x${string}`) => void 
+}) {
+  // For now, just render all projects with the wrapper
+  // The WhitelistedProjectRow will handle filtering by returning null for non-registered
+  // In a production app, we might want to track this differently
+  return (
+    <>
+      {projects.map((project) => (
+        <WhitelistedProjectRow
+          key={project.address}
+          projectAddress={project.address}
+          onSelect={onSelectProject}
+        />
+      ))}
+    </>
+  );
+}
+
 export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
   const { projects, isLoading } = useAllProjects();
   const [filter, setFilter] = useState<'all' | 'available' | 'active'>('all');
 
   // Filter only Direct Pool projects
-  const directPoolProjects = projects.filter(p => p.mode === 'DIRECT_POOL');
+  const directPoolProjects = projects.filter((p) => p.mode === 'DIRECT_POOL');
 
   if (isLoading) {
     return (
@@ -113,8 +164,10 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
     <div className="bg-white shadow rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Available Projects</h2>
-          <div className="flex space-x-2">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Whitelisted Projects
+          </h2>
+          {/* <div className="flex space-x-2">
             {(['all', 'available', 'active'] as const).map((f) => (
               <button
                 key={f}
@@ -128,7 +181,7 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
                 {f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -143,7 +196,7 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
                 Initial Price
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Allocation
+                Total Allocation
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Available
@@ -159,18 +212,18 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {directPoolProjects.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                <td
+                  colSpan={6}
+                  className="px-6 py-8 text-center text-sm text-gray-500"
+                >
                   No Direct Pool projects available
                 </td>
               </tr>
             ) : (
-              directPoolProjects.map((project) => (
-                <ProjectRow
-                  key={project.address}
-                  projectAddress={project.address}
-                  onSelect={onSelectProject}
-                />
-              ))
+              <WhitelistedProjectsList 
+                projects={directPoolProjects}
+                onSelectProject={onSelectProject}
+              />
             )}
           </tbody>
         </table>
