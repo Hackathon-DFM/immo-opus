@@ -1,5 +1,5 @@
 import { ponder } from "ponder:registry";
-import { project, projectOwner, token, registeredMM, borrow, tradingActivity } from "ponder:schema";
+import { project, projectOwner, registeredMM, borrow, tradingActivity } from "ponder:schema";
 
 // Handle ProjectCreated events from ProjectFactory
 ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
@@ -24,20 +24,7 @@ ponder.on("ProjectFactory:ProjectCreated", async ({ event, context }) => {
       lastUpdated: Number(block.timestamp),
     }));
   
-  // Create token record with address only (frontend will fetch metadata)
-  await context.db
-    .insert(token)
-    .values({
-      id: tokenAddress, // id is same as address
-      address: tokenAddress,
-      name: "Unknown", // Frontend will fetch this
-      symbol: "UNK", // Frontend will fetch this
-      decimals: 18, // Default, frontend will fetch actual value
-      totalSupply: 0n, // Frontend will fetch this
-      isNewlyCreated: true, // Assume newly created for now
-      createdAt: Number(block.timestamp),
-    })
-    .onConflictDoNothing();
+  // Do NOT create token record - frontend will fetch all token data in real-time
   
   // Fetch pool-specific properties based on mode
   let projectData: any = {

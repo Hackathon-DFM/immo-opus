@@ -8,16 +8,7 @@ export const projectOwner = onchainTable("projectOwner", (t) => ({
   lastUpdated: t.integer().notNull(),
 }));
 
-export const token = onchainTable("token", (t) => ({
-  id: t.hex().primaryKey(), // Same as address for token
-  address: t.hex().notNull(), // Token address
-  name: t.text().notNull(),
-  symbol: t.text().notNull(),
-  decimals: t.integer().notNull(),
-  totalSupply: t.bigint().notNull(),
-  isNewlyCreated: t.boolean().notNull(), // true for newly created, false for existing
-  createdAt: t.integer().notNull(),
-}));
+// Token table removed - frontend fetches token data in real-time
 
 export const project = onchainTable("project", (t) => ({
   id: t.hex().primaryKey(), // Same as address for project
@@ -103,19 +94,14 @@ export const projectOwnerRelations = relations(projectOwner, ({ many }) => ({
   projects: many(project),
 }));
 
-export const tokenRelations = relations(token, ({ many }) => ({
-  projects: many(project), // N:1 from project to token (multiple projects can use same token)
-}));
+// Token relations removed - frontend fetches token data in real-time
 
 export const projectRelations = relations(project, ({ one, many }) => ({
   owner: one(projectOwner, {
     fields: [project.owner],
     references: [projectOwner.id],
   }),
-  token: one(token, {
-    fields: [project.tokenAddress],
-    references: [token.id],
-  }),
+  // Token relation removed - frontend fetches token data in real-time
   registeredMMs: many(registeredMM),
   borrows: many(borrow),
   supportedClobs: many(supportedClob),
