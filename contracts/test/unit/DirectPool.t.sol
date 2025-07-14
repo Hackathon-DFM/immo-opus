@@ -15,6 +15,9 @@ contract DirectPoolTest is BaseTest {
         address projectAddress = createDirectPoolProject();
         pool = DirectPool(projectAddress);
         token = ERC20Token(pool.token());
+        
+        // Set CLOB configuration for the pool
+        setCLOBConfig(pool);
     }
     
     function test_InitialState() public {
@@ -110,10 +113,14 @@ contract DirectPoolTest is BaseTest {
         // Verify borrowed amount recorded
         assertEq(pool.borrowedAmount(marketMaker1), borrowAmount);
         
-        // Since no CLOB adapter created, tokens should be with MM directly
+        // Verify CLOBAdapter was created and tokens are in MockCLOBDex
         address adapter = pool.mmToCLOBAdapter(marketMaker1);
-        assertEq(adapter, address(0)); // No adapter created
-        assertEq(token.balanceOf(marketMaker1), borrowAmount); // Tokens sent to MM
+        assertTrue(adapter != address(0), "CLOBAdapter should be created");
+        assertEq(token.balanceOf(marketMaker1), 0, "MM should have no tokens in wallet");
+        assertEq(token.balanceOf(adapter), 0, "CLOBAdapter should have no tokens (deposited to CLOB)");
+        
+        // Check tokens are in MockCLOBDex
+        assertEq(clobDex.balances(adapter, address(token)), borrowAmount, "Tokens should be in MockCLOBDex");
     }
     
     function test_MaxBorrowAmount() public {
@@ -160,9 +167,20 @@ contract DirectPoolTest is BaseTest {
         vm.prank(marketMaker1);
         pool.borrowTokens(borrowAmount);
         
-        // MM already has the borrowed tokens (sent directly since no adapter created)
-        // Verify MM received the tokens
-        assertEq(token.balanceOf(marketMaker1), borrowAmount);
+        // Get CLOBAdapter address
+        address adapter = pool.mmToCLOBAdapter(marketMaker1);
+        assertTrue(adapter != address(0), "CLOBAdapter should exist");
+        
+        // Verify tokens are in CLOB, not MM wallet
+        assertEq(token.balanceOf(marketMaker1), 0, "MM should have no tokens in wallet");
+        assertEq(clobDex.balances(adapter, address(token)), borrowAmount, "Tokens should be in CLOB");
+        
+        // Withdraw tokens from CLOB to MM wallet
+        vm.prank(marketMaker1);
+        CLOBAdapter(adapter).withdrawTokens(borrowAmount);
+        
+        // Now MM has tokens in wallet
+        assertEq(token.balanceOf(marketMaker1), borrowAmount, "MM should have tokens after withdrawal");
         
         // Repay
         vm.startPrank(marketMaker1);
@@ -188,9 +206,19 @@ contract DirectPoolTest is BaseTest {
         vm.prank(marketMaker1);
         pool.borrowTokens(borrowAmount);
         
-        // MM already has the borrowed tokens, no need to transfer more for partial repay
-        // Verify MM has the tokens
-        assertEq(token.balanceOf(marketMaker1), borrowAmount);
+        // Get CLOBAdapter address
+        address adapter = pool.mmToCLOBAdapter(marketMaker1);
+        
+        // Verify tokens are in CLOB
+        assertEq(token.balanceOf(marketMaker1), 0, "MM should have no tokens in wallet");
+        assertEq(clobDex.balances(adapter, address(token)), borrowAmount, "Tokens should be in CLOB");
+        
+        // Withdraw only the amount needed for partial repay
+        vm.prank(marketMaker1);
+        CLOBAdapter(adapter).withdrawTokens(repayAmount);
+        
+        // Now MM has partial tokens in wallet
+        assertEq(token.balanceOf(marketMaker1), repayAmount, "MM should have repay amount");
         
         // Partial repay
         vm.startPrank(marketMaker1);
@@ -200,6 +228,8 @@ contract DirectPoolTest is BaseTest {
         
         // Verify partial repayment
         assertEq(pool.borrowedAmount(marketMaker1), borrowAmount - repayAmount);
+        // Verify remaining tokens still in CLOB
+        assertEq(clobDex.balances(adapter, address(token)), borrowAmount - repayAmount, "Remaining tokens in CLOB");
     }
     
     function test_EmergencyWithdraw() public {
@@ -214,21 +244,37 @@ contract DirectPoolTest is BaseTest {
         vm.prank(marketMaker1);
         pool.borrowTokens(borrowAmount);
         
+        // Get CLOBAdapter address
+        address adapter = pool.mmToCLOBAdapter(marketMaker1);
+        
+        // Verify tokens are in CLOB
+        assertEq(clobDex.balances(adapter, address(token)), borrowAmount, "Tokens should be in CLOB");
+        assertEq(token.balanceOf(marketMaker1), 0, "MM wallet should be empty");
+        
         // Skip past borrow time limit
         skipTime(BORROW_TIME_LIMIT + 1);
+        
+        // Calculate remaining pool balance
+        uint256 poolBalanceBefore = token.balanceOf(address(pool));
+        uint256 projectOwnerBalanceBefore = token.balanceOf(projectOwner);
         
         // Emergency withdraw
         vm.prank(projectOwner);
         pool.emergencyWithdraw(marketMaker1);
         
-        // Verify remaining pool tokens transferred to PO
-        assertEq(token.balanceOf(projectOwner), borrowAmount);
+        // Emergency withdraw transfers min(borrowed, poolBalance) to PO
+        // In this case, it should transfer the borrowed amount since pool has enough
+        uint256 expectedTransfer = borrowAmount < poolBalanceBefore ? borrowAmount : poolBalanceBefore;
+        assertEq(token.balanceOf(projectOwner), projectOwnerBalanceBefore + expectedTransfer, "PO should receive borrowed amount");
         
-        // MM keeps their borrowed tokens (emergency withdraw doesn't claw back from MM)
-        assertEq(token.balanceOf(marketMaker1), borrowAmount);
+        // Pool balance should be reduced by the transferred amount
+        assertEq(token.balanceOf(address(pool)), poolBalanceBefore - expectedTransfer, "Pool balance should be reduced");
         
-        // Pool should be empty after emergency withdraw
-        assertEq(token.balanceOf(address(pool)), TOKEN_SUPPLY - 2 * borrowAmount);
+        // MM keeps their borrowed tokens (they're in CLOB, emergency withdraw doesn't claw back)
+        assertEq(clobDex.balances(adapter, address(token)), borrowAmount, "Tokens should remain in CLOB");
+        
+        // Verify borrowed amount is reset
+        assertEq(pool.borrowedAmount(marketMaker1), 0, "Borrowed amount should be reset");
     }
     
     function test_RevertWhen_EmergencyWithdrawBeforeExpiry() public {
@@ -251,13 +297,29 @@ contract DirectPoolTest is BaseTest {
         vm.startPrank(projectOwner);
         pool.registerMM(marketMaker1);
         pool.finalizeMMs();
-        
-        // First need to set CLOB and USDC addresses for adapter creation
-        // TODO: Need to add setCLOBDex function to DirectPool
         vm.stopPrank();
         
-        // For now, skip this test since CLOB adapter creation requires CLOB DEX setup
-        // which isn't implemented in the base DirectPool contract
-        vm.skip(true);
+        // CLOB config is already set in setUp
+        
+        // Verify no adapter exists initially
+        assertEq(pool.mmToCLOBAdapter(marketMaker1), address(0), "No adapter should exist initially");
+        
+        // Borrow triggers adapter creation
+        vm.prank(marketMaker1);
+        pool.borrowTokens(100e18);
+        
+        // Verify adapter was created
+        address adapter = pool.mmToCLOBAdapter(marketMaker1);
+        assertTrue(adapter != address(0), "CLOBAdapter should be created");
+        
+        // Verify adapter is properly configured
+        CLOBAdapter clobAdapter = CLOBAdapter(adapter);
+        assertEq(clobAdapter.mm(), marketMaker1, "MM address should match");
+        assertEq(clobAdapter.directPool(), address(pool), "DirectPool address should match");
+        assertEq(clobAdapter.token(), address(token), "Token address should match");
+        assertEq(clobAdapter.clobDex(), address(clobDex), "CLOB DEX address should match");
+        
+        // Verify tokens went to CLOB
+        assertEq(clobDex.balances(adapter, address(token)), 100e18, "Tokens should be in CLOB");
     }
 }

@@ -32,21 +32,21 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
         uint256 _tokenAmount
     ) external {
         if (initialized) revert AlreadyInitialized();
-        
+
         projectOwner = _projectOwner;
         token = _token;
         directPool = _directPool;
         targetMarketCap = _targetMarketCap;
         tokenReserve = _tokenAmount;
-        
+
         // Calculate initial virtual USDC reserve based on initial price
         // virtualUSDCReserve = tokenReserve * initialPrice / token decimals adjustment
         // Since token has 18 decimals and USDC has 6, we need to adjust
         virtualUSDCReserve = (_tokenAmount * INITIAL_PRICE) / 1e18;
-        
+
         // TODO: Set USDC address based on deployment network
         // For now, we'll set it during deployment
-        
+
         initialized = true;
     }
 
@@ -62,40 +62,37 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
         tokensReceived = _buyWithSlippage(usdcAmount, 0);
     }
 
-    function buyWithSlippage(uint256 usdcAmount, uint256 minTokensOut) 
-        external 
-        nonReentrant 
-        returns (uint256 tokensReceived) 
+    function buyWithSlippage(uint256 usdcAmount, uint256 minTokensOut)
+        external
+        nonReentrant
+        returns (uint256 tokensReceived)
     {
         tokensReceived = _buyWithSlippage(usdcAmount, minTokensOut);
     }
-    
-    function _buyWithSlippage(uint256 usdcAmount, uint256 minTokensOut) 
-        internal 
-        returns (uint256 tokensReceived) 
-    {
+
+    function _buyWithSlippage(uint256 usdcAmount, uint256 minTokensOut) internal returns (uint256 tokensReceived) {
         if (graduated) revert AlreadyGraduated();
         if (usdcAmount == 0) revert InvalidAmount();
-        
+
         // Calculate tokens to receive using x*y=k formula
         tokensReceived = calculateBuyReturn(usdcAmount);
-        
+
         if (tokensReceived < minTokensOut) revert SlippageExceeded();
         if (tokensReceived > tokenReserve) revert InsufficientLiquidity();
-        
+
         // Transfer USDC from buyer
         IERC20(usdc).safeTransferFrom(msg.sender, address(this), usdcAmount);
-        
+
         // Update reserves
         tokenReserve -= tokensReceived;
         virtualUSDCReserve += usdcAmount;
         collectedUSDC += usdcAmount;
-        
+
         // Transfer tokens to buyer
         IERC20(token).safeTransfer(msg.sender, tokensReceived);
-        
+
         emit TokensPurchased(msg.sender, usdcAmount, tokensReceived);
-        
+
         // Check for graduation
         if (canGraduate()) {
             _graduate();
@@ -107,38 +104,35 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
         usdcReceived = _sellWithSlippage(tokenAmount, 0);
     }
 
-    function sellWithSlippage(uint256 tokenAmount, uint256 minUsdcOut) 
-        external 
-        nonReentrant 
-        returns (uint256 usdcReceived) 
+    function sellWithSlippage(uint256 tokenAmount, uint256 minUsdcOut)
+        external
+        nonReentrant
+        returns (uint256 usdcReceived)
     {
         usdcReceived = _sellWithSlippage(tokenAmount, minUsdcOut);
     }
-    
-    function _sellWithSlippage(uint256 tokenAmount, uint256 minUsdcOut) 
-        internal 
-        returns (uint256 usdcReceived) 
-    {
+
+    function _sellWithSlippage(uint256 tokenAmount, uint256 minUsdcOut) internal returns (uint256 usdcReceived) {
         if (graduated) revert AlreadyGraduated();
         if (tokenAmount == 0) revert InvalidAmount();
-        
+
         // Calculate USDC to receive using x*y=k formula
         usdcReceived = calculateSellReturn(tokenAmount);
-        
+
         if (usdcReceived < minUsdcOut) revert SlippageExceeded();
         if (usdcReceived > collectedUSDC) revert InsufficientLiquidity();
-        
+
         // Transfer tokens from seller
         IERC20(token).safeTransferFrom(msg.sender, address(this), tokenAmount);
-        
+
         // Update reserves
         tokenReserve += tokenAmount;
         virtualUSDCReserve -= usdcReceived;
         collectedUSDC -= usdcReceived;
-        
+
         // Transfer USDC to seller
         IERC20(usdc).safeTransfer(msg.sender, usdcReceived);
-        
+
         emit TokensSold(msg.sender, tokenAmount, usdcReceived);
     }
 
@@ -146,31 +140,30 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
     function graduate() external {
         if (graduated) revert AlreadyGraduated();
         if (!canGraduate()) revert CannotGraduateYet();
-        
+
         _graduate();
     }
 
     function _graduate() internal {
         graduated = true;
-        
+
         uint256 finalMarketCap = getCurrentMarketCap();
         emit Graduated(finalMarketCap);
-        
+
         // Transfer all remaining tokens to DirectPool
         uint256 remainingTokens = IERC20(token).balanceOf(address(this));
         if (remainingTokens > 0) {
             IERC20(token).safeTransfer(directPool, remainingTokens);
         }
-        
+
         // Transfer all collected USDC to DirectPool
         uint256 remainingUSDC = IERC20(usdc).balanceOf(address(this));
         if (remainingUSDC > 0) {
             IERC20(usdc).safeTransfer(directPool, remainingUSDC);
         }
-        
-        // Update DirectPool ownership from bonding curve to project owner
-        // Note: DirectPool should have a function to handle this ownership transfer
-        // For now, the DirectPool was initialized with the bonding curve as owner
+
+        // Update DirectPool ownership and total liquidity
+        IDirectPool(directPool).handleGraduation(projectOwner, remainingTokens);
     }
 
     // View Functions
@@ -185,10 +178,10 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
     function getCurrentMarketCap() public view returns (uint256) {
         uint256 totalSupply = IERC20(token).totalSupply();
         if (tokenReserve == 0) return 0;
-        
+
         // Current price in USDC (6 decimals) per token
         uint256 currentPrice = (virtualUSDCReserve * PRECISION) / tokenReserve;
-        
+
         // Market cap = total supply * price
         // totalSupply has 18 decimals, price has 6 decimals precision
         // Result should be in USDC (6 decimals)
@@ -206,16 +199,16 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
     // Calculate expected tokens from USDC amount using x*y=k
     function calculateBuyReturn(uint256 usdcAmount) public view returns (uint256) {
         if (usdcAmount == 0) return 0;
-        
+
         // Current k = tokenReserve * virtualUSDCReserve
         uint256 k = tokenReserve * virtualUSDCReserve;
-        
+
         // New USDC reserve after buy
         uint256 newUsdcReserve = virtualUSDCReserve + usdcAmount;
-        
+
         // New token reserve to maintain k constant
         uint256 newTokenReserve = k / newUsdcReserve;
-        
+
         // Tokens to send = current reserve - new reserve
         return tokenReserve - newTokenReserve;
     }
@@ -223,16 +216,16 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
     // Calculate expected USDC from token amount using x*y=k
     function calculateSellReturn(uint256 tokenAmount) public view returns (uint256) {
         if (tokenAmount == 0) return 0;
-        
+
         // Current k = tokenReserve * virtualUSDCReserve
         uint256 k = tokenReserve * virtualUSDCReserve;
-        
+
         // New token reserve after sell
         uint256 newTokenReserve = tokenReserve + tokenAmount;
-        
+
         // New USDC reserve to maintain k constant
         uint256 newUsdcReserve = k / newTokenReserve;
-        
+
         // USDC to send = current reserve - new reserve
         return virtualUSDCReserve - newUsdcReserve;
     }

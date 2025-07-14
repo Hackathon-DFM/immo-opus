@@ -105,7 +105,7 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
     }
 
     // Create CLOB adapter for MM (optional, can be called by PO or MM)
-    function createCLOBAdapter(address mm) external {
+    function createCLOBAdapter(address mm) public {
         if (!registeredMMs[mm]) revert NotRegisteredMM();
         if (mmToCLOBAdapter[mm] != address(0)) revert TransferFailed(); // Already has adapter
         require(clobDex != address(0) && usdc != address(0), "CLOB config not set");
@@ -139,17 +139,18 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
         borrowedAmount[msg.sender] += amount;
         borrowTimestamp[msg.sender] = block.timestamp;
         
-        // Transfer tokens to MM (or their CLOB adapter if set)
-        address recipient = mmToCLOBAdapter[msg.sender] != address(0) 
-            ? mmToCLOBAdapter[msg.sender] 
-            : msg.sender;
-        
-        IERC20(token).safeTransfer(recipient, amount);
-        
-        // If sent to CLOB adapter, trigger deposit to CLOB DEX
-        if (recipient != msg.sender) {
-            CLOBAdapter(recipient).receiveTokens(amount);
+        // Ensure CLOBAdapter exists before borrowing
+        if (mmToCLOBAdapter[msg.sender] == address(0)) {
+            require(clobDex != address(0) && usdc != address(0), "CLOB not configured");
+            createCLOBAdapter(msg.sender);
         }
+        
+        // Always send to CLOBAdapter (never to MM directly)
+        address adapter = mmToCLOBAdapter[msg.sender];
+        IERC20(token).safeTransfer(adapter, amount);
+        
+        // Notify adapter to deposit to CLOB
+        CLOBAdapter(adapter).receiveTokens(amount);
         
         emit TokensBorrowed(msg.sender, amount);
     }
@@ -230,6 +231,20 @@ contract DirectPool is IDirectPool, ReentrancyGuard {
                 borrowedAmounts[i] = borrowedAmount[mmList[i]];
             }
         }
+    }
+
+    // Graduation handler - only callable by BondingCurve (current owner)
+    function handleGraduation(address newOwner, uint256 tokenAmount) external {
+        // Security: Only callable by current owner (BondingCurve)
+        require(msg.sender == projectOwner, "Only owner can graduate");
+        
+        // Update total liquidity to match incoming tokens
+        totalLiquidity = tokenAmount;
+        
+        // Transfer ownership from BondingCurve to original project owner
+        projectOwner = newOwner;
+        
+        emit Graduated(newOwner, totalLiquidity);
     }
 
     // Internal Functions

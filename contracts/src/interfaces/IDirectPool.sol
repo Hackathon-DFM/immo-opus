@@ -9,6 +9,7 @@ interface IDirectPool {
     event TokensBorrowed(address indexed mm, uint256 amount);
     event TokensRepaid(address indexed mm, uint256 amount);
     event EmergencyWithdraw(address indexed mm, uint256 amount);
+    event Graduated(address indexed newOwner, uint256 totalLiquidity);
 
     // Errors
     error NotProjectOwner();
@@ -42,6 +43,9 @@ interface IDirectPool {
     // MM Operations (only registered MMs)
     function borrowTokens(uint256 amount) external;
     function repayTokens(uint256 amount) external;
+
+    // Graduation handler (only callable by BondingCurve)
+    function handleGraduation(address newOwner, uint256 tokenAmount) external;
 
     // View Functions
     function getMaxBorrowAmount(address mm) external view returns (uint256);

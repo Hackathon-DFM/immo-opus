@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "../BaseTest.sol";
 import "../../src/interfaces/IDirectPool.sol";
 import "../../src/interfaces/IBondingCurve.sol";
+import "../../src/adapters/CLOBAdapter.sol";
 
 contract EdgeCasesTest is BaseTest {
     
@@ -48,6 +49,9 @@ contract EdgeCasesTest is BaseTest {
             pool.registerMM(mms[i]);
         }
         pool.finalizeMMs();
+        
+        // Set CLOB config before borrowing
+        pool.setCLOBConfig(address(clobDex), address(usdc));
         vm.stopPrank();
         
         uint256 allocation = pool.getMMAllocation();
@@ -75,6 +79,9 @@ contract EdgeCasesTest is BaseTest {
         // Register only 1 MM
         pool.registerMM(marketMaker1);
         pool.finalizeMMs();
+        
+        // Set CLOB config before borrowing
+        pool.setCLOBConfig(address(clobDex), address(usdc));
         vm.stopPrank();
         
         // MM should get entire allocation
@@ -116,6 +123,9 @@ contract EdgeCasesTest is BaseTest {
         pool.registerMM(marketMaker2);
         pool.registerMM(user1);
         pool.finalizeMMs();
+        
+        // Set CLOB config before borrowing
+        pool.setCLOBConfig(address(clobDex), address(usdc));
         vm.stopPrank();
         
         // All MMs borrow
@@ -154,6 +164,9 @@ contract EdgeCasesTest is BaseTest {
         
         pool.registerMM(marketMaker1);
         pool.finalizeMMs();
+        
+        // Set CLOB config before borrowing
+        pool.setCLOBConfig(address(clobDex), address(usdc));
         vm.stopPrank();
         
         // MM borrows
@@ -161,7 +174,14 @@ contract EdgeCasesTest is BaseTest {
         vm.prank(marketMaker1);
         pool.borrowTokens(borrowAmount);
         
-        // MM already has borrowed tokens, give them extra tokens using deal
+        // Get CLOBAdapter address
+        address adapter = pool.mmToCLOBAdapter(marketMaker1);
+        
+        // Withdraw from CLOB first
+        vm.prank(marketMaker1);
+        CLOBAdapter(adapter).withdrawTokens(borrowAmount);
+        
+        // MM now has tokens, give them extra tokens using deal
         deal(address(token), marketMaker1, borrowAmount * 3); // 3x the borrowed amount
         
         // Try to repay more than borrowed
