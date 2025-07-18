@@ -1,6 +1,10 @@
-import { createConfig } from "ponder";
+import { createConfig } from 'ponder';
 
-import { ProjectFactoryABI, DirectPoolABI, BondingCurveABI } from "./abis/index.js";
+import {
+  ProjectFactoryABI,
+  DirectPoolABI,
+  BondingCurveABI,
+} from './abis/index.js';
 
 export default createConfig({
   chains: {
@@ -11,21 +15,21 @@ export default createConfig({
   },
   contracts: {
     ProjectFactory: {
-      chain: "arbitrumSepolia",
+      chain: 'arbitrumSepolia',
       abi: ProjectFactoryABI,
-      address: "0x01ebD170A7D3eCb6d105Cea1f37f34F89BE4dc97",
-      startBlock: 170213392, 
+      address: '0x234cb50e97ceada09a8df492160d8202dedc9a4c',
+      startBlock: 173367709,
     },
     DirectPoolTemplate: {
-      chain: "arbitrumSepolia", 
+      chain: 'arbitrumSepolia',
       abi: DirectPoolABI,
-      address: "0x41DBC5C299A9C31F0A0A32aaE8B7c4dd76bB5014",
+      address: '0x191f2e3425c2c3ab0a93d6fbfd0ea2408551c8f4',
       startBlock: 170213364,
     },
     BondingCurveTemplate: {
-      chain: "arbitrumSepolia",
-      abi: BondingCurveABI, 
-      address: "0x4FcFc18A2215cEBDfBd1AC30A1576E267237983B",
+      chain: 'arbitrumSepolia',
+      abi: BondingCurveABI,
+      address: '0xd92e69d56c839d50ebc3e1424b12f514e7fea168',
       startBlock: 170213378,
     },
   },

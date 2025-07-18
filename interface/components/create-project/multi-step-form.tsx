@@ -212,10 +212,10 @@ export function MultiStepForm() {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                   step === currentStep
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-blue-600 text-white dark:bg-blue-500'
                     : step < currentStep
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-gray-200 text-gray-500'
+                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400'
+                    : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                 }`}
               >
                 {step}
@@ -223,7 +223,7 @@ export function MultiStepForm() {
               {step < 4 && (
                 <div
                   className={`w-full h-1 mx-2 ${
-                    step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                    step < currentStep ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-200 dark:bg-gray-700'
                   }`}
                 />
               )}
@@ -231,14 +231,14 @@ export function MultiStepForm() {
           ))}
         </div>
         <div className="flex justify-between mt-2">
-          <span className="text-xs text-gray-500">Token</span>
-          <span className="text-xs text-gray-500">Pool Mode</span>
-          <span className="text-xs text-gray-500">Time Limit</span>
-          <span className="text-xs text-gray-500">Review</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Token</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Pool Mode</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Time Limit</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Review</span>
         </div>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 border border-gray-200 dark:border-gray-700">
         {renderStep()}
       </div>
     </div>

@@ -1,467 +1,255 @@
 export const BondingCurveABI = [
+  { inputs: [], name: 'AlreadyGraduated', type: 'error' },
+  { inputs: [], name: 'AlreadyInitialized', type: 'error' },
+  { inputs: [], name: 'CannotGraduateYet', type: 'error' },
+  { inputs: [], name: 'InsufficientLiquidity', type: 'error' },
+  { inputs: [], name: 'InvalidAmount', type: 'error' },
+  { inputs: [], name: 'ReentrancyGuardReentrantCall', type: 'error' },
   {
-    "type": "function",
-    "name": "buy",
-    "inputs": [
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+    type: 'error',
+  },
+  { inputs: [], name: 'SlippageExceeded', type: 'error' },
+  { inputs: [], name: 'TransferFailed', type: 'error' },
+  {
+    anonymous: false,
+    inputs: [
       {
-        "name": "usdcAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'finalMarketCap',
+        type: 'uint256',
+      },
     ],
-    "outputs": [
-      {
-        "name": "tokensReceived",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable"
+    name: 'Graduated',
+    type: 'event',
   },
   {
-    "type": "function",
-    "name": "buyWithSlippage",
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "name": "usdcAmount",
-        "type": "uint256",
-        "internalType": "uint256"
+        indexed: true,
+        internalType: 'address',
+        name: 'buyer',
+        type: 'address',
       },
       {
-        "name": "minTokensOut",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "tokensReceived",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "calculateBuyReturn",
-    "inputs": [
-      {
-        "name": "usdcAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "calculateSellReturn",
-    "inputs": [
-      {
-        "name": "tokenAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "canGraduate",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "collectedUSDC",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "directPool",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getCurrentMarketCap",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getCurrentPrice",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getReserves",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "_tokenReserve",
-        "type": "uint256",
-        "internalType": "uint256"
+        indexed: false,
+        internalType: 'uint256',
+        name: 'usdcAmount',
+        type: 'uint256',
       },
       {
-        "name": "_virtualUsdcReserve",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'tokensReceived',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view"
+    name: 'TokensPurchased',
+    type: 'event',
   },
   {
-    "type": "function",
-    "name": "graduate",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "graduated",
-    "inputs": [],
-    "outputs": [
+    anonymous: false,
+    inputs: [
       {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "initialize",
-    "inputs": [
-      {
-        "name": "_projectOwner",
-        "type": "address",
-        "internalType": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'seller',
+        type: 'address',
       },
       {
-        "name": "_token",
-        "type": "address",
-        "internalType": "address"
+        indexed: false,
+        internalType: 'uint256',
+        name: 'tokenAmount',
+        type: 'uint256',
       },
       {
-        "name": "_directPool",
-        "type": "address",
-        "internalType": "address"
+        indexed: false,
+        internalType: 'uint256',
+        name: 'usdcReceived',
+        type: 'uint256',
       },
-      {
-        "name": "_targetMarketCap",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_tokenAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    name: 'TokensSold',
+    type: 'event',
   },
   {
-    "type": "function",
-    "name": "projectOwner",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
+    inputs: [{ internalType: 'uint256', name: 'usdcAmount', type: 'uint256' }],
+    name: 'buy',
+    outputs: [
+      { internalType: 'uint256', name: 'tokensReceived', type: 'uint256' },
     ],
-    "stateMutability": "view"
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "sell",
-    "inputs": [
-      {
-        "name": "tokenAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    inputs: [
+      { internalType: 'uint256', name: 'usdcAmount', type: 'uint256' },
+      { internalType: 'uint256', name: 'minTokensOut', type: 'uint256' },
     ],
-    "outputs": [
-      {
-        "name": "usdcReceived",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    name: 'buyWithSlippage',
+    outputs: [
+      { internalType: 'uint256', name: 'tokensReceived', type: 'uint256' },
     ],
-    "stateMutability": "nonpayable"
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "sellWithSlippage",
-    "inputs": [
-      {
-        "name": "tokenAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "minUsdcOut",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    inputs: [{ internalType: 'uint256', name: 'usdcAmount', type: 'uint256' }],
+    name: 'calculateBuyReturn',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'tokenAmount', type: 'uint256' }],
+    name: 'calculateSellReturn',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'canGraduate',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'collectedUSDC',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'directPool',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getCurrentMarketCap',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getCurrentPrice',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getReserves',
+    outputs: [
+      { internalType: 'uint256', name: '_tokenReserve', type: 'uint256' },
+      { internalType: 'uint256', name: '_virtualUsdcReserve', type: 'uint256' },
     ],
-    "outputs": [
-      {
-        "name": "usdcReceived",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'graduate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'graduated',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: '_projectOwner', type: 'address' },
+      { internalType: 'address', name: '_token', type: 'address' },
+      { internalType: 'address', name: '_directPool', type: 'address' },
+      { internalType: 'uint256', name: '_targetMarketCap', type: 'uint256' },
+      { internalType: 'uint256', name: '_tokenAmount', type: 'uint256' },
     ],
-    "stateMutability": "nonpayable"
+    name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "setUSDC",
-    "inputs": [
-      {
-        "name": "_usdc",
-        "type": "address",
-        "internalType": "address"
-      }
+    inputs: [],
+    name: 'projectOwner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'tokenAmount', type: 'uint256' }],
+    name: 'sell',
+    outputs: [
+      { internalType: 'uint256', name: 'usdcReceived', type: 'uint256' },
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "targetMarketCap",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    inputs: [
+      { internalType: 'uint256', name: 'tokenAmount', type: 'uint256' },
+      { internalType: 'uint256', name: 'minUsdcOut', type: 'uint256' },
     ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "token",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
+    name: 'sellWithSlippage',
+    outputs: [
+      { internalType: 'uint256', name: 'usdcReceived', type: 'uint256' },
     ],
-    "stateMutability": "view"
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "tokenReserve",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    inputs: [{ internalType: 'address', name: '_usdc', type: 'address' }],
+    name: 'setUSDC',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "usdc",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
+    inputs: [],
+    name: 'targetMarketCap',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "virtualUSDCReserve",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    inputs: [],
+    name: 'token',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "type": "event",
-    "name": "Graduated",
-    "inputs": [
-      {
-        "name": "finalMarketCap",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
+    inputs: [],
+    name: 'tokenReserve',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "type": "event",
-    "name": "TokensPurchased",
-    "inputs": [
-      {
-        "name": "buyer",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "usdcAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "tokensReceived",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
+    inputs: [],
+    name: 'usdc',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "type": "event",
-    "name": "TokensSold",
-    "inputs": [
-      {
-        "name": "seller",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "tokenAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "usdcReceived",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
+    inputs: [],
+    name: 'virtualUSDCReserve',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
-  {
-    "type": "error",
-    "name": "AlreadyGraduated",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "AlreadyInitialized",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "CannotGraduateYet",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InsufficientLiquidity",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidAmount",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "ReentrancyGuardReentrantCall",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "SafeERC20FailedOperation",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "SlippageExceeded",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "TransferFailed",
-    "inputs": []
-  }
 ] as const;

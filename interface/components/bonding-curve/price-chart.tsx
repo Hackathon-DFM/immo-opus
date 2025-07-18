@@ -70,13 +70,13 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{tokenSymbol} Price Chart</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{tokenSymbol} Price Chart</h3>
           <div className="flex items-baseline space-x-2 mt-1">
-            <span className="text-2xl font-bold text-gray-900">{formatPrice(parseFloat(currentPrice))}</span>
-            <span className="text-sm text-gray-500">USDC</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(parseFloat(currentPrice))}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">USDC</span>
           </div>
         </div>
         
@@ -87,8 +87,8 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
               onClick={() => setTimeframe(tf)}
               className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                 timeframe === tf
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               {tf === 'all' ? 'All' : tf.toUpperCase()}
@@ -145,15 +145,15 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       </div>
 
       <div className="grid grid-cols-2 gap-4 mt-4">
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <p className="text-sm text-gray-600">Market Cap</p>
-          <p className="text-lg font-semibold text-gray-900">
+        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Market Cap</p>
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">
             {formatMarketCap(parseFloat(currentMarketCap))}
           </p>
         </div>
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <p className="text-sm text-gray-600">24h Change</p>
-          <p className="text-lg font-semibold text-green-600">
+        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+          <p className="text-sm text-gray-600 dark:text-gray-400">24h Change</p>
+          <p className="text-lg font-semibold text-green-600 dark:text-green-400">
             +{(Math.random() * 20 + 5).toFixed(2)}%
           </p>
         </div>

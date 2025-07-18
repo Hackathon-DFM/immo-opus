@@ -1,382 +1,202 @@
 export const ProjectFactoryABI = [
   {
-    "type": "constructor",
-    "inputs": [
-      {
-        "name": "_usdc",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "nonpayable"
+    inputs: [{ internalType: 'address', name: '_usdc', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
+  { inputs: [], name: 'FailedDeployment', type: 'error' },
   {
-    "type": "function",
-    "name": "allProjects",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    inputs: [
+      { internalType: 'uint256', name: 'balance', type: 'uint256' },
+      { internalType: 'uint256', name: 'needed', type: 'uint256' },
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
+    name: 'InsufficientBalance',
+    type: 'error',
   },
+  { inputs: [], name: 'InvalidDescription', type: 'error' },
+  { inputs: [], name: 'InvalidInitialPrice', type: 'error' },
+  { inputs: [], name: 'InvalidTargetMarketCap', type: 'error' },
+  { inputs: [], name: 'InvalidTimeLimit', type: 'error' },
+  { inputs: [], name: 'InvalidTokenAmount', type: 'error' },
   {
-    "type": "function",
-    "name": "bondingCurveTemplate",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+    type: 'error',
   },
+  { inputs: [], name: 'TemplatesAlreadySet', type: 'error' },
+  { inputs: [], name: 'TemplatesNotSet', type: 'error' },
+  { inputs: [], name: 'ZeroAddress', type: 'error' },
   {
-    "type": "function",
-    "name": "createProject",
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "name": "isNewToken",
-        "type": "bool",
-        "internalType": "bool"
+        indexed: true,
+        internalType: 'address',
+        name: 'project',
+        type: 'address',
       },
       {
-        "name": "existingToken",
-        "type": "address",
-        "internalType": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
       },
       {
-        "name": "name",
-        "type": "string",
-        "internalType": "string"
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
       },
       {
-        "name": "symbol",
-        "type": "string",
-        "internalType": "string"
+        indexed: false,
+        internalType: 'enum IProjectFactory.PoolMode',
+        name: 'mode',
+        type: 'uint8',
+      },
+    ],
+    name: 'ProjectCreated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'directPoolTemplate',
+        type: 'address',
       },
       {
-        "name": "description",
-        "type": "string",
-        "internalType": "string"
+        indexed: true,
+        internalType: 'address',
+        name: 'bondingCurveTemplate',
+        type: 'address',
       },
+    ],
+    name: 'TemplatesSet',
+    type: 'event',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    name: 'allProjects',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'bondingCurveTemplate',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bool', name: 'isNewToken', type: 'bool' },
+      { internalType: 'address', name: 'existingToken', type: 'address' },
+      { internalType: 'string', name: 'name', type: 'string' },
+      { internalType: 'string', name: 'symbol', type: 'string' },
+      { internalType: 'string', name: 'description', type: 'string' },
+      { internalType: 'uint256', name: 'tokenAmount', type: 'uint256' },
       {
-        "name": "tokenAmount",
-        "type": "uint256",
-        "internalType": "uint256"
+        internalType: 'enum IProjectFactory.PoolMode',
+        name: 'mode',
+        type: 'uint8',
       },
+      { internalType: 'uint256', name: 'initialPrice', type: 'uint256' },
+      { internalType: 'uint256', name: 'targetMarketCap', type: 'uint256' },
+      { internalType: 'uint256', name: 'borrowTimeLimit', type: 'uint256' },
+    ],
+    name: 'createProject',
+    outputs: [
+      { internalType: 'address', name: 'projectAddress', type: 'address' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'directPoolTemplate',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getAllProjects',
+    outputs: [{ internalType: 'address[]', name: '', type: 'address[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getProjectCount',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'project', type: 'address' }],
+    name: 'getProjectMode',
+    outputs: [
       {
-        "name": "mode",
-        "type": "uint8",
-        "internalType": "enum IProjectFactory.PoolMode"
+        internalType: 'enum IProjectFactory.PoolMode',
+        name: '',
+        type: 'uint8',
       },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'owner', type: 'address' }],
+    name: 'getProjectsByOwner',
+    outputs: [{ internalType: 'address[]', name: '', type: 'address[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: '', type: 'address' }],
+    name: 'projectModes',
+    outputs: [
       {
-        "name": "initialPrice",
-        "type": "uint256",
-        "internalType": "uint256"
+        internalType: 'enum IProjectFactory.PoolMode',
+        name: '',
+        type: 'uint8',
       },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: '', type: 'address' },
+      { internalType: 'uint256', name: '', type: 'uint256' },
+    ],
+    name: 'projectsByOwner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: '_directPoolTemplate', type: 'address' },
       {
-        "name": "targetMarketCap",
-        "type": "uint256",
-        "internalType": "uint256"
+        internalType: 'address',
+        name: '_bondingCurveTemplate',
+        type: 'address',
       },
-      {
-        "name": "borrowTimeLimit",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
     ],
-    "outputs": [
-      {
-        "name": "projectAddress",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "nonpayable"
+    name: 'setTemplates',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "type": "function",
-    "name": "directPoolTemplate",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
+    inputs: [],
+    name: 'usdc',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
   },
-  {
-    "type": "function",
-    "name": "getAllProjects",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getProjectCount",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getProjectMode",
-    "inputs": [
-      {
-        "name": "project",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "enum IProjectFactory.PoolMode"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getProjectsByOwner",
-    "inputs": [
-      {
-        "name": "owner",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "projectModes",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "enum IProjectFactory.PoolMode"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "projectsByOwner",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "setTemplates",
-    "inputs": [
-      {
-        "name": "_directPoolTemplate",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_bondingCurveTemplate",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "usdc",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "event",
-    "name": "ProjectCreated",
-    "inputs": [
-      {
-        "name": "project",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "owner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "mode",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum IProjectFactory.PoolMode"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "TemplatesSet",
-    "inputs": [
-      {
-        "name": "directPoolTemplate",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "bondingCurveTemplate",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "error",
-    "name": "FailedDeployment",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InsufficientBalance",
-    "inputs": [
-      {
-        "name": "balance",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "needed",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "InvalidDescription",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidInitialPrice",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidTargetMarketCap",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidTimeLimit",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidTokenAmount",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "SafeERC20FailedOperation",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "TemplatesAlreadySet",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "TemplatesNotSet",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "ZeroAddress",
-    "inputs": []
-  }
 ] as const;
