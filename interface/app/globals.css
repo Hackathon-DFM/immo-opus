@@ -4,8 +4,9 @@
 @variant dark (&:is(.dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-montserrat);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-permanent-marker);
 }
 
 /* Base styles for light/dark mode */
@@ -21,7 +22,139 @@
   }
 
   body {
-    font-family: var(--font-geist-sans), sans-serif;
+    font-family: var(--font-montserrat), sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* GTX Animations */
+@layer utilities {
+  /* Shimmer slide effect */
+  @keyframes shimmer-slide {
+    to {
+      transform: translate(calc(100cqw - 100%));
+    }
+  }
+  
+  .animate-shimmer-slide {
+    animation: shimmer-slide var(--speed, 2s) ease-in-out infinite alternate;
+  }
+  
+  /* Gradient animation */
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+  
+  /* Spin around animation */
+  @keyframes spin-around {
+    0% {
+      transform: translateZ(0) rotate(0);
+    }
+    15%, 35% {
+      transform: translateZ(0) rotate(90deg);
+    }
+    65%, 85% {
+      transform: translateZ(0) rotate(270deg);
+    }
+    100% {
+      transform: translateZ(0) rotate(360deg);
+    }
+  }
+  
+  .animate-spin-around {
+    animation: spin-around calc(var(--speed, 2s) * 2) infinite linear;
+  }
+  
+  /* Fade in animation for step transitions */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-in {
+    animation: fade-in 0.3s ease-out;
+  }
+  
+  /* Modal animations */
+  @keyframes fade-in-backdrop {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .animate-fade-in-backdrop {
+    animation: fade-in-backdrop 0.2s ease-out;
+  }
+  
+  @keyframes fade-in-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-fade-in-scale {
+    animation: fade-in-scale 0.3s ease-out;
+  }
+  
+  /* Center scale animation for dashboard cards */
+  @keyframes fade-in-scale-center {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-fade-in-scale-center {
+    animation: fade-in-scale-center 0.2s ease-out;
+    animation-fill-mode: backwards;
+    transform-origin: center center;
+  }
+}
+
+/* Font utility classes */
+@layer utilities {
+  .font-montserrat {
+    font-family: var(--font-montserrat), sans-serif;
+  }
+  
+  .font-permanent-marker {
+    font-family: var(--font-permanent-marker), cursive;
+  }
+  
+  .font-mono {
+    font-family: var(--font-geist-mono), monospace;
   }
 }

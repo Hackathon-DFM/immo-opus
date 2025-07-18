@@ -33,11 +33,11 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
             className={`flex-1 px-4 py-3 border-2 rounded-lg text-center transition-colors ${
               formData.isNewToken
                 ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-500'
-                : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500 dark:text-gray-300'
+                : 'border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-500 dark:text-gray-300'
             }`}
           >
             <div className="font-semibold">Create New Token</div>
-            <div className="text-sm mt-1 opacity-75">Deploy a new ERC20 token</div>
+            <div className="text-sm font-medium mt-1 opacity-75">Deploy a new ERC20 token</div>
           </button>
           
           <button
@@ -46,11 +46,11 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
             className={`flex-1 px-4 py-3 border-2 rounded-lg text-center transition-colors ${
               !formData.isNewToken
                 ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-500'
-                : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500 dark:text-gray-300'
+                : 'border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-500 dark:text-gray-300'
             }`}
           >
             <div className="font-semibold">Use Existing Token</div>
-            <div className="text-sm mt-1 opacity-75">Import an existing ERC20 token</div>
+            <div className="text-sm font-medium mt-1 opacity-75">Import an existing ERC20 token</div>
           </button>
         </div>
 
@@ -64,7 +64,7 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
                 type="text"
                 value={formData.name || ''}
                 onChange={(e) => updateFormData({ name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="e.g., My Token"
               />
             </div>
@@ -77,7 +77,7 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
                 type="text"
                 value={formData.symbol || ''}
                 onChange={(e) => updateFormData({ symbol: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="e.g., MTK"
                 maxLength={5}
               />
@@ -90,7 +90,7 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
               <textarea
                 value={formData.description || ''}
                 onChange={(e) => updateFormData({ description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="Brief description of your token"
                 rows={3}
               />
@@ -112,10 +112,10 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
                 type="text"
                 value={formData.existingToken || ''}
                 onChange={(e) => updateFormData({ existingToken: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                   formData.existingToken && !isAddress(formData.existingToken)
                     ? 'border-red-300 dark:border-red-500'
-                    : 'border-gray-300 dark:border-gray-600'
+                    : 'border-gray-300 dark:border-gray-700'
                 }`}
                 placeholder="0x..."
               />
@@ -132,7 +132,7 @@ export function TokenSelection({ formData, updateFormData, onNext }: StepProps) 
                 type="number"
                 value={formData.tokenAmount || ''}
                 onChange={(e) => updateFormData({ tokenAmount: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 placeholder="0.0"
                 min="0"
                 step="any"

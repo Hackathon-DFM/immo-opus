@@ -27,46 +27,46 @@ export function ReviewSubmit({
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Review & Submit</h2>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">Review your project configuration before submitting</p>
+        <p className="mt-2 font-medium text-gray-600 dark:text-gray-400">Review your project configuration before submitting</p>
       </div>
 
       <div className="space-y-4">
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-3">
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-3">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">Token Configuration</h3>
           {formData.isNewToken ? (
             <>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Token Name:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">Token Name:</span>
                 <span className="font-medium dark:text-gray-200">{formData.name}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Token Symbol:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">Token Symbol:</span>
                 <span className="font-medium dark:text-gray-200">{formData.symbol}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Description:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">Description:</span>
                 <span className="font-medium truncate max-w-xs">{formData.description}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Total Supply:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">Total Supply:</span>
                 <span className="font-medium dark:text-gray-200">1,000,000,000</span>
               </div>
             </>
           ) : (
             <>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Token Address:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">Token Address:</span>
                 <span className="font-medium dark:text-gray-200 font-mono text-xs">{formData.existingToken}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Deposit Amount:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">Deposit Amount:</span>
                 <span className="font-medium dark:text-gray-200">{formData.tokenAmount}</span>
               </div>
             </>
           )}
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-3">
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-3">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">Pool Configuration</h3>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Pool Mode:</span>

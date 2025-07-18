@@ -76,8 +76,8 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in-backdrop">
+      <div className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto animate-fade-in-scale">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Borrow Tokens</h2>
           <button
@@ -91,31 +91,31 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
         </div>
 
         <div className="space-y-4">
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-3">
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Token:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-400">Token:</span>
               <span className="font-medium dark:text-gray-200">{name} ({symbol})</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Initial Price:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-400">Initial Price:</span>
               <span className="font-medium dark:text-gray-200">${priceFormatted} USDC</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Your Allocation:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-400">Your Allocation:</span>
               <span className="font-medium dark:text-gray-200">{parseFloat(allocationFormatted).toLocaleString()} {symbol}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Already Borrowed:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-400">Already Borrowed:</span>
               <span className="font-medium dark:text-gray-200">{parseFloat(borrowedFormatted).toLocaleString()} {symbol}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Available to Borrow:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-400">Available to Borrow:</span>
               <span className="font-medium text-green-600 dark:text-green-400">
                 {parseFloat(maxBorrowFormatted).toLocaleString()} {symbol}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Borrow Time Limit:</span>
+              <span className="font-medium text-gray-600 dark:text-gray-400">Borrow Time Limit:</span>
               <span className="font-medium dark:text-gray-200">{borrowTimeDays} days</span>
             </div>
           </div>
@@ -130,7 +130,7 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
                 value={borrowAmount}
                 onChange={(e) => setBorrowAmount(e.target.value)}
                 placeholder="0.0"
-                className="w-full px-3 py-2 pr-20 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 pr-20 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 min="0"
                 max={maxBorrowFormatted}
                 step="any"
@@ -154,7 +154,7 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
             <div className="relative">
               <select
                 disabled
-                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed appearance-none"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed appearance-none"
                 value="gtx"
               >
                 <option value="gtx">GTX</option>
@@ -193,14 +193,14 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
             <button
               onClick={onClose}
               disabled={isSubmitting || isPending}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleBorrow}
               disabled={!borrowAmount || parseFloat(borrowAmount) <= 0 || isSubmitting || isPending}
-              className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting || isPending ? 'Borrowing...' : 'Borrow'}
             </button>

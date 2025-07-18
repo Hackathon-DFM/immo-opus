@@ -27,7 +27,7 @@ export function TimeConfiguration({ formData, updateFormData, onNext, onBack }: 
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Time Configuration</h2>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">Set the borrowing time limit for Market Makers</p>
+        <p className="mt-2 font-medium text-gray-600 dark:text-gray-400">Set the borrowing time limit for Market Makers</p>
       </div>
 
       <div className="space-y-4">
@@ -60,22 +60,22 @@ export function TimeConfiguration({ formData, updateFormData, onNext, onBack }: 
               max="30"
               value={secondsToDays(formData.borrowTimeLimit)}
               onChange={(e) => updateFormData({ borrowTimeLimit: daysToSeconds(parseInt(e.target.value)) })}
-              className="flex-1 dark:bg-gray-700"
+              className="flex-1 dark:bg-gray-800"
             />
             <div className="w-20 text-center">
               <span className="text-2xl font-semibold dark:text-white">{secondsToDays(formData.borrowTimeLimit)}</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400 block">days</span>
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 block">days</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-2">
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-2">
           <h3 className="font-medium text-gray-900 dark:text-gray-100">What is the borrow time limit?</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
             This is the maximum time Market Makers have to repay borrowed tokens. After this period expires, 
             the Project Owner can use emergency withdraw to recover any remaining tokens.
           </p>
-          <ul className="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside mt-2">
+          <ul className="text-sm font-medium text-gray-600 dark:text-gray-400 list-disc list-inside mt-2">
             <li>Minimum: 1 day</li>
             <li>Maximum: 30 days</li>
             <li>Default: 7 days</li>

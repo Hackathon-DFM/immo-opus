@@ -18,7 +18,7 @@ export function GraduationProgress({ bondingCurveAddress, tokenSymbol }: Graduat
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Graduation Progress</h3>
         {graduated && (
@@ -30,12 +30,12 @@ export function GraduationProgress({ bondingCurveAddress, tokenSymbol }: Graduat
 
       <div className="space-y-4">
         <div className="relative">
-          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <div className="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
             <span>Current Market Cap</span>
             <span>Target: {formatValue(targetMarketCap)}</span>
           </div>
           
-          <div className="relative h-8 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="relative h-8 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
               className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out ${
                 graduated ? 'bg-green-500' : 'bg-blue-500'
@@ -90,14 +90,14 @@ export function GraduationProgress({ bondingCurveAddress, tokenSymbol }: Graduat
         )}
 
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-            <p className="text-gray-600 dark:text-gray-400">Remaining to Graduate</p>
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+            <p className="font-medium text-gray-600 dark:text-gray-400">Remaining to Graduate</p>
             <p className="font-semibold text-gray-900 dark:text-white">
               {formatValue((parseFloat(targetMarketCap) - parseFloat(currentMarketCap)).toString())}
             </p>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-            <p className="text-gray-600 dark:text-gray-400">Token Reserve</p>
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+            <p className="font-medium text-gray-600 dark:text-gray-400">Token Reserve</p>
             <p className="font-semibold text-gray-900 dark:text-white">
               {parseFloat(useBondingCurve(bondingCurveAddress).tokenReserve).toLocaleString()} {tokenSymbol}
             </p>

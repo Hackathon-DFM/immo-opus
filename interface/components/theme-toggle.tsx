@@ -30,7 +30,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-200"
+      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors duration-200"
       title={getLabel()}
       aria-label={getLabel()}
     >

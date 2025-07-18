@@ -51,25 +51,25 @@ function PositionRow({ projectAddress, onRepay }: PositionRowProps) {
   const pnlPercentage = (pnl / borrowedValue) * 100;
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300 animate-fade-in-scale-center">
       <td className="px-6 py-4 whitespace-nowrap">
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
           <div className="text-sm text-gray-500 dark:text-gray-400">{symbol}</div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         {parseFloat(borrowedFormatted).toLocaleString()}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         ${borrowedValue.toFixed(2)}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         {parseFloat(balanceFormatted).toLocaleString()}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">
         <div className="flex items-center space-x-1">
-          <span className={pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+          <span className={`font-medium ${pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {pnl >= 0 ? '+' : ''}
             {pnl.toFixed(2)}
           </span>
@@ -101,7 +101,7 @@ function PositionRow({ projectAddress, onRepay }: PositionRowProps) {
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <button
           onClick={() => onRepay(projectAddress)}
-          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium transition-all duration-300"
         >
           Repay
         </button>
@@ -130,11 +130,11 @@ export function CurrentPositions() {
 
   if (!address) {
     return (
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-900 shadow rounded-lg p-6 transition-all duration-300 hover:shadow-md animate-fade-in-scale-center">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Current Positions
         </h2>
-        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+        <p className="font-medium text-gray-500 dark:text-gray-400 text-center py-8">
           Connect wallet to view positions
         </p>
       </div>
@@ -143,8 +143,8 @@ export function CurrentPositions() {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-900 shadow rounded-lg transition-all duration-300 hover:shadow-md animate-fade-in-scale-center">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Current Positions
           </h2>
@@ -152,7 +152,7 @@ export function CurrentPositions() {
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Token
@@ -177,7 +177,7 @@ export function CurrentPositions() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
               {directPoolProjects.map((project) => (
                 <PositionRow
                   key={project.address}
@@ -189,9 +189,9 @@ export function CurrentPositions() {
           </table>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="font-medium text-gray-600 dark:text-gray-400">
               Positions shown are for Direct Pool projects only
             </span>
             {/* <button className="text-blue-600 hover:text-blue-700 font-medium">

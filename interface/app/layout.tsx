@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat, Permanent_Marker, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from '@/components/providers';
 import { LayoutWrapper } from '@/components/layout-wrapper';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+});
+
+const permanentMarker = Permanent_Marker({
+  variable: "--font-permanent-marker",
+  subsets: ["latin"],
+  weight: '400',
 });
 
 const geistMono = Geist_Mono({
@@ -28,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}
+        className={`${montserrat.variable} ${permanentMarker.variable} ${geistMono.variable} font-montserrat antialiased bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100`}
       >
         <Providers>
           <LayoutWrapper>{children}</LayoutWrapper>

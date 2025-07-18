@@ -51,20 +51,20 @@ function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
   const canBorrow = isRegistered && isFinalized && maxBorrowAmount > BigInt(0);
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300 animate-fade-in-scale-center">
       <td className="px-6 py-4 whitespace-nowrap">
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{name}</div>
           <div className="text-sm text-gray-500 dark:text-gray-400">{symbol}</div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         ${priceFormatted}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         {parseFloat(allocationFormatted).toLocaleString()}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         {(
           parseFloat(availableFormatted) - parseFloat(borrowedFormatted)
         ).toLocaleString()}
@@ -96,8 +96,8 @@ function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
           disabled={!canBorrow}
           className={`${
             canBorrow
-              ? 'text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300'
-              : 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              ? 'text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-medium transition-all duration-300'
+              : 'text-gray-400 dark:text-gray-500 cursor-not-allowed font-medium'
           }`}
         >
           {canBorrow
@@ -147,12 +147,16 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+      <div className="bg-white dark:bg-gray-900 shadow rounded-lg p-6">
+        <div className="space-y-4">
+          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/4 overflow-hidden relative">
+            <div className="absolute inset-0 -translate-x-full animate-shimmer-slide bg-gradient-to-r from-transparent via-white/20 dark:via-white/10 to-transparent"></div>
+          </div>
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-800 rounded overflow-hidden relative">
+                <div className="absolute inset-0 -translate-x-full animate-shimmer-slide bg-gradient-to-r from-transparent via-white/20 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.1}s` }}></div>
+              </div>
             ))}
           </div>
         </div>
@@ -161,8 +165,8 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-900 shadow rounded-lg transition-all duration-300 hover:shadow-md animate-fade-in-scale-center">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Whitelisted Projects
@@ -187,7 +191,7 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 dark:bg-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Token
@@ -209,12 +213,12 @@ export function AvailableProjects({ onSelectProject }: AvailableProjectsProps) {
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
             {directPoolProjects.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
-                  className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400"
+                  className="px-6 py-8 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
                   No Direct Pool projects available
                 </td>

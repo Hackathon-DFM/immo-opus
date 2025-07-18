@@ -14,6 +14,45 @@ import { getContractAddresses } from '@/src/config/contracts';
 
 const TOTAL_STEPS = 4;
 
+const STEP_CONFIG = [
+  {
+    label: 'Token',
+    description: 'Setup',
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Pool',
+    description: 'Mode',
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Time',
+    description: 'Limit',
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Review',
+    description: 'Submit',
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+];
+
 export function MultiStepForm() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -205,41 +244,85 @@ export function MultiStepForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {[1, 2, 3, 4].map((step) => (
-            <div key={step} className="flex items-center">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                  step === currentStep
-                    ? 'bg-blue-600 text-white dark:bg-blue-500'
-                    : step < currentStep
-                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400'
-                    : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                }`}
-              >
-                {step}
+      <div className="mb-20">
+        <div className="flex items-center justify-between relative">
+          {STEP_CONFIG.map((stepConfig, index) => {
+            const stepNumber = index + 1;
+            const isActive = stepNumber === currentStep;
+            const isCompleted = stepNumber < currentStep;
+            const isPending = stepNumber > currentStep;
+            
+            return (
+              <div key={stepNumber} className="flex items-center flex-1">
+                <div className="relative">
+                  {/* Active step pulse animation */}
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-full bg-blue-400 dark:bg-blue-500 animate-ping opacity-20" />
+                  )}
+                  
+                  {/* Step circle */}
+                  <div
+                    className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg scale-110'
+                        : isCompleted
+                        ? 'bg-green-500 dark:bg-green-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-2 border-gray-300 dark:border-gray-700'
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <div className={`${isActive ? 'scale-110' : ''} [&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6`}>
+                        {stepConfig.icon}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Step label */}
+                  <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-center">
+                    <p className={`text-sm font-semibold ${
+                      isActive
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : isCompleted
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {stepConfig.label}
+                    </p>
+                    <p className="text-xs opacity-75 text-gray-500 dark:text-gray-400 mt-0.5 hidden sm:block">
+                      {stepConfig.description}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Progress connector */}
+                {stepNumber < TOTAL_STEPS && (
+                  <div className="flex-1 mx-3 mt-6">
+                    <div className="h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ease-out ${
+                          isCompleted
+                            ? 'bg-gradient-to-r from-green-500 to-blue-500'
+                            : 'bg-transparent'
+                        }`}
+                        style={{ width: isCompleted ? '100%' : '0%' }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              {step < 4 && (
-                <div
-                  className={`w-full h-1 mx-2 ${
-                    step < currentStep ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-200 dark:bg-gray-700'
-                  }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-between mt-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Token</span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">Pool Mode</span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">Time Limit</span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">Review</span>
+            );
+          })}
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        {renderStep()}
+      <div className="bg-white dark:bg-gray-900 shadow-lg rounded-lg p-6 border border-gray-200 dark:border-gray-800 transition-all duration-300">
+        <div className="animate-in fade-in duration-300" key={currentStep}>
+          {renderStep()}
+        </div>
       </div>
     </div>
   );
