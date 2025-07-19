@@ -16,9 +16,9 @@ export default function ProjectDetailPage() {
   if (!isAddress(projectAddress)) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-red-900">Invalid Project Address</h2>
-          <p className="text-red-700 mt-2">
+        <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-red-900 dark:text-red-400">Invalid Project Address</h2>
+          <p className="text-red-700 dark:text-red-300 mt-2">
             The provided address is not a valid Ethereum address.
           </p>
         </div>
@@ -35,6 +35,7 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
+
         <div className="animate-pulse">
           <div className="h-64 bg-gray-200 rounded-lg"></div>
         </div>
@@ -49,6 +50,7 @@ export default function ProjectDetailPage() {
           <h2 className="text-lg font-semibold text-red-900">Project Not Found</h2>
           <p className="text-red-700 mt-2">
             The project with address {projectAddress} could not be found.
+
           </p>
         </div>
       </div>

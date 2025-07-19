@@ -1,7 +1,9 @@
+
 import { createConfig, factory } from "ponder";
 import { parseAbiItem } from "viem";
 
 import { ProjectFactoryABI, DirectPoolABI, BondingCurveABI, ERC20TokenABI } from "./abis/index.js";
+
 
 export default createConfig({
   chains: {
@@ -12,11 +14,12 @@ export default createConfig({
   },
   contracts: {
     ProjectFactory: {
-      chain: "arbitrumSepolia",
+      chain: 'arbitrumSepolia',
       abi: ProjectFactoryABI,
-      address: "0x01ebD170A7D3eCb6d105Cea1f37f34F89BE4dc97",
-      startBlock: 170213392, 
+      address: '0x234cb50e97ceada09a8df492160d8202dedc9a4c',
+      startBlock: 173367709,
     },
+
     DirectPool: {
       chain: "arbitrumSepolia", 
       abi: DirectPoolABI,
@@ -36,6 +39,7 @@ export default createConfig({
         parameter: "project",
       }),
       startBlock: 170213392, // Same as factory start block
+
     },
   },
 });

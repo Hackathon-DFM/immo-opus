@@ -7,6 +7,7 @@ import {ProjectFactory} from "../src/core/ProjectFactory.sol";
 import {DirectPool} from "../src/core/DirectPool.sol";
 import {BondingCurve} from "../src/core/BondingCurve.sol";
 import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+import {MockCLOBDex} from "../src/mocks/MockCLOBDex.sol";
 
 contract DeployIMMO is Script {
     function run() external {
@@ -17,6 +18,10 @@ contract DeployIMMO is Script {
         // For mainnet, we'd use real USDC address
         MockUSDC usdc = new MockUSDC();
         console.log("MockUSDC deployed at:", address(usdc));
+        
+        // Deploy MockCLOBDex for testing
+        MockCLOBDex clobDex = new MockCLOBDex();
+        console.log("MockCLOBDex deployed at:", address(clobDex));
 
         // Deploy template contracts first
         DirectPool directPoolTemplate = new DirectPool();
@@ -46,6 +51,7 @@ contract DeployIMMO is Script {
             '  "directPoolTemplate": "', vm.toString(address(directPoolTemplate)), '",\n',
             '  "bondingCurveTemplate": "', vm.toString(address(bondingCurveTemplate)), '",\n',
             '  "usdc": "', vm.toString(address(usdc)), '",\n',
+            '  "clobDex": "', vm.toString(address(clobDex)), '",\n',
             '  "deployer": "', vm.toString(msg.sender), '",\n',
             '  "network": "arbitrum-sepolia",\n',
             '  "chainId": 421614\n',

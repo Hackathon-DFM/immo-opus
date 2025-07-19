@@ -1,8 +1,9 @@
 {
-  "projectFactory": "0x01ebD170A7D3eCb6d105Cea1f37f34F89BE4dc97",
-  "directPoolTemplate": "0x41DBC5C299A9C31F0A0A32aaE8B7c4dd76bB5014",
-  "bondingCurveTemplate": "0x4FcFc18A2215cEBDfBd1AC30A1576E267237983B",
-  "usdc": "0x20D87565d1B025904D9a456D31bBf8fA1dBaA7a9",
+  "projectFactory": "0x234Cb50e97CeaDA09A8Df492160d8202Dedc9A4c",
+  "directPoolTemplate": "0x191f2e3425C2c3aB0A93d6Fbfd0Ea2408551c8f4",
+  "bondingCurveTemplate": "0xD92E69d56c839D50eBC3E1424b12F514e7FEA168",
+  "usdc": "0x6eAF19b19fD13a3CF3587b9E9AdfBcf449306bFb",
+  "clobDex": "0x0521498F5c4dD62f424577fcD888154F1d64Ff02",
   "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
   "network": "arbitrum-sepolia",
   "chainId": 421614

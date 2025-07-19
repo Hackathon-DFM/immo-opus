@@ -77,22 +77,22 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
 
   if (graduated) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <p className="text-yellow-800 font-medium">This bonding curve has graduated!</p>
-        <p className="text-yellow-700 text-sm mt-1">Trading has moved to the Direct Pool.</p>
+      <div className="bg-yellow-50 dark:bg-yellow-900/50 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+        <p className="text-yellow-800 dark:text-yellow-400 font-medium">This bonding curve has graduated!</p>
+        <p className="text-yellow-700 dark:text-yellow-300 text-sm mt-1">Trading has moved to the Direct Pool.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6">
       <div className="flex mb-4">
         <button
           onClick={() => setActiveTab('buy')}
           className={`flex-1 py-2 px-4 font-medium rounded-l-lg transition-colors ${
             activeTab === 'buy'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-green-600 dark:bg-green-500 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
           Buy
@@ -101,8 +101,8 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
           onClick={() => setActiveTab('sell')}
           className={`flex-1 py-2 px-4 font-medium rounded-r-lg transition-colors ${
             activeTab === 'sell'
-              ? 'bg-red-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-red-600 dark:bg-red-500 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
           Sell
@@ -113,7 +113,7 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
         {activeTab === 'buy' ? (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 You Pay (USDC)
               </label>
               <div className="relative">
@@ -122,18 +122,18 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   value={buyAmount}
                   onChange={(e) => setBuyAmount(e.target.value)}
                   placeholder="0.0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   min="0"
                   step="0.01"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   USDC
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 You Receive ({tokenSymbol})
               </label>
               <div className="relative">
@@ -141,9 +141,9 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   type="text"
                   value={buyTokensOut}
                   readOnly
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   {tokenSymbol}
                 </span>
               </div>
@@ -152,7 +152,7 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
         ) : (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 You Sell ({tokenSymbol})
               </label>
               <div className="relative">
@@ -161,18 +161,18 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   value={sellAmount}
                   onChange={(e) => setSellAmount(e.target.value)}
                   placeholder="0.0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   min="0"
                   step="0.01"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   {tokenSymbol}
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 You Receive (USDC)
               </label>
               <div className="relative">
@@ -180,9 +180,9 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   type="text"
                   value={sellUsdcOut}
                   readOnly
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   USDC
                 </span>
               </div>
@@ -190,13 +190,13 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
           </>
         )}
 
-        <div className="bg-gray-50 p-3 rounded-lg space-y-2 text-sm">
+        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Current Price:</span>
-            <span className="font-medium">${currentPrice} USDC</span>
+            <span className="text-gray-600 dark:text-gray-400">Current Price:</span>
+            <span className="font-medium dark:text-white">${currentPrice} USDC</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Slippage Tolerance:</span>
+            <span className="text-gray-600 dark:text-gray-400">Slippage Tolerance:</span>
             <div className="flex items-center space-x-1">
               {[0.1, 0.5, 1].map((value) => (
                 <button
@@ -204,8 +204,8 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   onClick={() => setSlippage(value)}
                   className={`px-2 py-1 text-xs rounded ${
                     slippage === value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                      ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                      : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                   }`}
                 >
                   {value}%
@@ -218,7 +218,7 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
         {!address ? (
           <button
             disabled
-            className="w-full py-3 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed"
+            className="w-full py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg font-medium cursor-not-allowed"
           >
             Connect Wallet
           </button>
@@ -228,8 +228,8 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
             disabled={!buyAmount || parseFloat(buyAmount) <= 0 || isBuying || isApproving}
             className={`w-full py-3 rounded-lg font-medium transition-colors ${
               !buyAmount || parseFloat(buyAmount) <= 0 || isBuying || isApproving
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-green-600 text-white hover:bg-green-700'
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                : 'bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600'
             }`}
           >
             {isApproving ? 'Approving USDC...' : isBuying ? 'Buying...' : 'Buy'}
@@ -240,8 +240,8 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
             disabled={!sellAmount || parseFloat(sellAmount) <= 0 || isSelling}
             className={`w-full py-3 rounded-lg font-medium transition-colors ${
               !sellAmount || parseFloat(sellAmount) <= 0 || isSelling
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-red-600 text-white hover:bg-red-700'
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                : 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600'
             }`}
           >
             {isSelling ? 'Selling...' : 'Sell'}

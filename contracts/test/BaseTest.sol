@@ -114,4 +114,9 @@ contract BaseTest is Test {
     function skipTime(uint256 time) public {
         vm.warp(block.timestamp + time);
     }
+    
+    function setCLOBConfig(DirectPool pool) internal {
+        vm.prank(pool.projectOwner());
+        pool.setCLOBConfig(address(clobDex), address(usdc));
+    }
 }
