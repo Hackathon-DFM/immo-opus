@@ -58,8 +58,16 @@ function ProjectRow({ projectAddress, onSelect }: ProjectRowProps) {
           <div className="text-sm text-gray-500 dark:text-gray-400">{symbol}</div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-        ${priceFormatted}
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums">
+        $
+        {(() => {
+          const price = parseFloat(priceFormatted);
+          if (price < 0.000001) return price.toExponential(2);
+          if (price >= 1000000) return (price / 1000000).toFixed(2) + 'M';
+          if (price >= 1000) return (price / 1000).toFixed(2) + 'K';
+          if (price < 0.01) return price.toFixed(6);
+          return price.toFixed(4);
+        })()}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
         {parseFloat(allocationFormatted).toLocaleString()}

@@ -69,12 +69,17 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
   }, [currentPrice, currentMarketCap, timeframe]);
 
   const formatPrice = (value: number) => {
+    if (value >= 1000000000) return `$${(value / 1000000000).toFixed(2)}B`;
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(2)}K`;
+    if (value < 0.000001) return `$${value.toExponential(2)}`;
     if (value < 0.01) return `$${value.toFixed(6)}`;
     if (value < 1) return `$${value.toFixed(4)}`;
     return `$${value.toFixed(2)}`;
   };
 
   const formatMarketCap = (value: number) => {
+    if (value >= 1000000000) return `$${(value / 1000000000).toFixed(2)}B`;
     if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
     if (value >= 1000) return `$${(value / 1000).toFixed(2)}K`;
     return `$${value.toFixed(2)}`;
@@ -86,7 +91,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{tokenSymbol} Price Chart</h3>
           <div className="flex items-baseline space-x-2 mt-1">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(parseFloat(currentPrice))}</span>
+            <span className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate tabular-nums">{formatPrice(parseFloat(currentPrice))}</span>
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">USDC</span>
           </div>
         </div>
@@ -157,9 +162,9 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       </div>
 
       <div className="grid grid-cols-2 gap-4 mt-4">
-        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg min-w-0">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Market Cap</p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white truncate tabular-nums" title={formatMarketCap(parseFloat(currentMarketCap))}>
             {formatMarketCap(parseFloat(currentMarketCap))}
           </p>
         </div>
