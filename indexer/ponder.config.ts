@@ -1,10 +1,9 @@
-import { createConfig } from 'ponder';
 
-import {
-  ProjectFactoryABI,
-  DirectPoolABI,
-  BondingCurveABI,
-} from './abis/index.js';
+import { createConfig, factory } from "ponder";
+import { parseAbiItem } from "viem";
+
+import { ProjectFactoryABI, DirectPoolABI, BondingCurveABI, ERC20TokenABI } from "./abis/index.js";
+
 
 export default createConfig({
   chains: {
@@ -20,17 +19,27 @@ export default createConfig({
       address: '0x234cb50e97ceada09a8df492160d8202dedc9a4c',
       startBlock: 173367709,
     },
-    DirectPoolTemplate: {
-      chain: 'arbitrumSepolia',
+
+    DirectPool: {
+      chain: "arbitrumSepolia", 
       abi: DirectPoolABI,
-      address: '0x191f2e3425c2c3ab0a93d6fbfd0ea2408551c8f4',
-      startBlock: 170213364,
+      address: factory({
+        address: "0x01ebD170A7D3eCb6d105Cea1f37f34F89BE4dc97",
+        event: parseAbiItem("event ProjectCreated(address project, address owner, address token, uint8 mode)"),
+        parameter: "project",
+      }),
+      startBlock: 170213392, // Same as factory start block
     },
-    BondingCurveTemplate: {
-      chain: 'arbitrumSepolia',
-      abi: BondingCurveABI,
-      address: '0xd92e69d56c839d50ebc3e1424b12f514e7fea168',
-      startBlock: 170213378,
+    BondingCurve: {
+      chain: "arbitrumSepolia",
+      abi: BondingCurveABI, 
+      address: factory({
+        address: "0x01ebD170A7D3eCb6d105Cea1f37f34F89BE4dc97",
+        event: parseAbiItem("event ProjectCreated(address project, address owner, address token, uint8 mode)"),
+        parameter: "project",
+      }),
+      startBlock: 170213392, // Same as factory start block
+
     },
   },
 });

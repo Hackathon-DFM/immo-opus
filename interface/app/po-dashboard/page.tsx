@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
 import { usePonderProjectsByOwner } from '../../lib/hooks/use-ponder-projects';
 import { useMarketMakers } from '../../lib/hooks/use-market-makers';
 import { Project } from '../../lib/graphql/client';
+import { useTokenMetadata } from '../../lib/hooks/use-token-metadata';
 
 
 function StatusBadge({ status }: { status: string }) {
@@ -26,12 +28,17 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ProjectCard({ 
-  project 
+  project,
+  router 
 }: { 
   project: Project;
+  router: any;
 }) {
   const [showMMManagement, setShowMMManagement] = useState(false);
   const [newMMAddress, setNewMMAddress] = useState('');
+  
+  // Fetch token metadata in real-time
+  const { data: tokenMetadata } = useTokenMetadata(project.tokenAddress as `0x${string}`);
 
   // Only use market makers hook for DirectPool projects
   const isDirectPool = project.mode === 'DIRECT_POOL';
@@ -151,11 +158,13 @@ function ProjectCard({
       {/* Project Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
+
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {project.token.name || 'Unknown Token'}
+            {tokenMetadata?.name || 'Loading...'}
           </h3>
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {project.token.symbol || 'UNK'} • {project.mode.replace('_', ' ')}
+            {tokenMetadata?.symbol || '...'} • {project.mode.replace('_', ' ')}
+
           </p>
           <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-1">
             {project.address.slice(0, 6)}...{project.address.slice(-4)}
@@ -470,7 +479,11 @@ function ProjectCard({
       {/* Project Actions */}
       <div className="border-t pt-4 mt-4">
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
+
+          <button 
+            onClick={() => router.push(`/project/${project.address}`)}
+            className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
+
             View Details
           </button>
           <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300">
@@ -490,6 +503,7 @@ function ProjectCard({
 export default function PODashboard() {
   const [filter, setFilter] = useState<'all' | 'active' | 'mm-registration' | 'graduated'>('all');
   const { address, isConnected } = useAccount();
+  const router = useRouter();
 
   // Get user's projects from Ponder
   const { data: projects = [], isLoading: isLoadingProjects } = usePonderProjectsByOwner(address);
@@ -539,8 +553,10 @@ export default function PODashboard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
+
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Project Owner Dashboard</h1>
-        <button className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
+        <button onClick={() => router.push('/create')} className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
+
           Create New Project
         </button>
       </div>
@@ -646,6 +662,7 @@ export default function PODashboard() {
             <ProjectCard 
               key={project.address} 
               project={project}
+              router={router}
             />
           ))
         ) : projects.length === 0 ? (
@@ -655,9 +672,11 @@ export default function PODashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
+
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No projects found</h3>
             <p className="font-medium text-gray-600 dark:text-gray-400 mb-6">Get started by creating your first IMMO project.</p>
-            <button className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
+            <button onClick={() => router.push('/create')} className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
+
               Create Project
             </button>
           </div>
