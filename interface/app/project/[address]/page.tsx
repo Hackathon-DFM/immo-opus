@@ -37,7 +37,7 @@ export default function ProjectDetailPage() {
       <div className="max-w-4xl mx-auto">
 
         <div className="animate-pulse">
-          <div className="h-64 bg-gray-200 rounded-lg"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
         </div>
       </div>
     );
@@ -46,9 +46,9 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-red-900">Project Not Found</h2>
-          <p className="text-red-700 mt-2">
+        <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-red-900 dark:text-red-400">Project Not Found</h2>
+          <p className="text-red-700 dark:text-red-300 mt-2">
             The project with address {projectAddress} could not be found.
 
           </p>

@@ -139,9 +139,16 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
               <div className="relative">
                 <input
                   type="text"
-                  value={buyTokensOut}
+                  value={(() => {
+                    const tokens = parseFloat(buyTokensOut);
+                    if (tokens >= 1000000000) return (tokens / 1000000000).toFixed(2) + 'B';
+                    if (tokens >= 1000000) return (tokens / 1000000).toFixed(2) + 'M';
+                    if (tokens >= 1000) return (tokens / 1000).toFixed(2) + 'K';
+                    if (tokens < 0.000001 && tokens > 0) return tokens.toExponential(2);
+                    return tokens.toFixed(6);
+                  })()}
                   readOnly
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white tabular-nums"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   {tokenSymbol}
@@ -178,9 +185,15 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
               <div className="relative">
                 <input
                   type="text"
-                  value={sellUsdcOut}
+                  value={(() => {
+                    const usdc = parseFloat(sellUsdcOut);
+                    if (usdc >= 1000000) return (usdc / 1000000).toFixed(2) + 'M';
+                    if (usdc >= 1000) return (usdc / 1000).toFixed(2) + 'K';
+                    if (usdc < 0.01 && usdc > 0) return usdc.toFixed(6);
+                    return usdc.toFixed(2);
+                  })()}
                   readOnly
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white tabular-nums"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   USDC
@@ -191,9 +204,18 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
         )}
 
         <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Current Price:</span>
-            <span className="font-medium dark:text-white">${currentPrice} USDC</span>
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">Current Price:</span>
+            <span className="font-medium dark:text-white truncate tabular-nums min-w-0" title={`$${parseFloat(currentPrice).toFixed(6)} USDC`}>
+              ${parseFloat(currentPrice) < 0.000001 
+                ? parseFloat(currentPrice).toExponential(2) 
+                : parseFloat(currentPrice) >= 1000000
+                  ? (parseFloat(currentPrice) / 1000000).toFixed(2) + 'M'
+                  : parseFloat(currentPrice) >= 1000
+                    ? (parseFloat(currentPrice) / 1000).toFixed(2) + 'K'
+                    : parseFloat(currentPrice).toFixed(6)
+              } USDC
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">Slippage Tolerance:</span>
