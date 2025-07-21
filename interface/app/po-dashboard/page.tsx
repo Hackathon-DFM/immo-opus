@@ -246,19 +246,19 @@ function ProjectCard({
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Current Price</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {realTimePrice ? `$${Number(formatUnits(realTimePrice, 6)).toFixed(4)}` : '$0'}
+                {realTimePrice ? `$${Number(realTimePrice).toFixed(4)}` : '$0'}
               </p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Market Cap</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {realTimeMarketCap ? `$${Number(formatUnits(realTimeMarketCap, 6)).toLocaleString()}` : '$0'}
+                {realTimeMarketCap ? `$${Number(realTimeMarketCap).toLocaleString()}` : '$0'}
               </p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Target Cap</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {realTimeTargetCap ? `$${Number(formatUnits(realTimeTargetCap, 6)).toLocaleString()}` : '$0'}
+                {realTimeTargetCap ? `$${Number(realTimeTargetCap).toLocaleString()}` : '$0'}
               </p>
             </div>
             <div>
