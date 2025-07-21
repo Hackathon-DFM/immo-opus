@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
 import { useBondingCurve, useBondingCurveBuy, useBondingCurveSell, useUSDCApproval } from '@/lib/hooks/use-bonding-curve';
+import { useTokenBalance } from '@/lib/hooks/use-direct-pool';
+import BondingCurveABI from '@/lib/contracts/BondingCurve.json';
 
 interface BuySellFormsProps {
   bondingCurveAddress: `0x${string}`;
@@ -25,6 +27,17 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
   const { buy, isPending: isBuying } = useBondingCurveBuy(bondingCurveAddress);
   const { sell, isPending: isSelling } = useBondingCurveSell(bondingCurveAddress);
   const { allowance, checkAndApprove, isApproving: isApprovingHook } = useUSDCApproval(usdcAddress, bondingCurveAddress);
+
+  // Get token address from bonding curve
+  const { data: tokenAddress } = useReadContract({
+    address: bondingCurveAddress,
+    abi: BondingCurveABI,
+    functionName: 'token',
+  });
+
+  // Get user balances
+  const usdcBalance = useTokenBalance(usdcAddress);
+  const tokenBalance = useTokenBalance(tokenAddress as `0x${string}`);
 
   // Calculate expected output when input changes
   useEffect(() => {
@@ -75,6 +88,16 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
     }
   };
 
+  const handleMaxBuy = () => {
+    const maxUsdc = formatUnits(usdcBalance, 6);
+    setBuyAmount(maxUsdc);
+  };
+
+  const handleMaxSell = () => {
+    const maxTokens = formatUnits(tokenBalance, 18);
+    setSellAmount(maxTokens);
+  };
+
   if (graduated) {
     return (
       <div className="bg-yellow-50 dark:bg-yellow-900/50 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
@@ -122,13 +145,21 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   value={buyAmount}
                   onChange={(e) => setBuyAmount(e.target.value)}
                   placeholder="0.0"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 pr-20 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   min="0"
                   step="0.01"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                  USDC
-                </span>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                  <button
+                    onClick={handleMaxBuy}
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    MAX
+                  </button>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    USDC
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -168,13 +199,21 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
                   value={sellAmount}
                   onChange={(e) => setSellAmount(e.target.value)}
                   placeholder="0.0"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 pr-20 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   min="0"
                   step="0.01"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                  {tokenSymbol}
-                </span>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                  <button
+                    onClick={handleMaxSell}
+                    className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    MAX
+                  </button>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {tokenSymbol}
+                  </span>
+                </div>
               </div>
             </div>
 

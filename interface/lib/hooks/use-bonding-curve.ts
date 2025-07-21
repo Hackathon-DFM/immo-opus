@@ -1,10 +1,11 @@
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount, usePublicClient } from 'wagmi';
 import { formatUnits, parseUnits } from 'viem';
 import BondingCurveABI from '../contracts/BondingCurve.json';
 import { erc20Abi } from 'viem';
 
 export function useBondingCurve(bondingCurveAddress: `0x${string}` | undefined) {
   const { address } = useAccount();
+  const publicClient = usePublicClient();
 
   // Read current price
   const { data: currentPrice } = useReadContract({
@@ -94,15 +95,37 @@ export function useBondingCurve(bondingCurveAddress: `0x${string}` | undefined) 
   });
 
   const calculateBuyReturn = async (usdcAmount: string) => {
-    // For now, return a mock value since we can't dynamically call contract with different args
-    // In production, this would require a separate contract call
-    return parseUnits('100', 18); // Mock 100 tokens for 1 USDC
+    if (!bondingCurveAddress || !usdcAmount || parseFloat(usdcAmount) <= 0 || !publicClient) return BigInt(0);
+    
+    try {
+      const result = await publicClient.readContract({
+        address: bondingCurveAddress,
+        abi: BondingCurveABI,
+        functionName: 'calculateBuyReturn',
+        args: [parseUnits(usdcAmount, 6)],
+      });
+      return result as bigint;
+    } catch (error) {
+      console.error('Error calculating buy return:', error);
+      return BigInt(0);
+    }
   };
 
   const calculateSellReturn = async (tokenAmount: string) => {
-    // For now, return a mock value since we can't dynamically call contract with different args
-    // In production, this would require a separate contract call
-    return parseUnits('1', 6); // Mock 1 USDC for 100 tokens
+    if (!bondingCurveAddress || !tokenAmount || parseFloat(tokenAmount) <= 0 || !publicClient) return BigInt(0);
+    
+    try {
+      const result = await publicClient.readContract({
+        address: bondingCurveAddress,
+        abi: BondingCurveABI,
+        functionName: 'calculateSellReturn',
+        args: [parseUnits(tokenAmount, 18)],
+      });
+      return result as bigint;
+    } catch (error) {
+      console.error('Error calculating sell return:', error);
+      return BigInt(0);
+    }
   };
 
   return {
