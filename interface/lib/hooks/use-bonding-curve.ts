@@ -8,67 +8,79 @@ export function useBondingCurve(bondingCurveAddress: `0x${string}` | undefined) 
   const publicClient = usePublicClient();
 
   // Read current price
-  const { data: currentPrice } = useReadContract({
+  const { data: currentPrice, error: priceError, isLoading: priceLoading } = useReadContract({
     address: bondingCurveAddress,
     abi: BondingCurveABI,
     functionName: 'getCurrentPrice',
     query: {
       enabled: !!bondingCurveAddress,
       refetchInterval: 10000, // Refresh every 10 seconds
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   });
 
   // Read current market cap
-  const { data: currentMarketCap } = useReadContract({
+  const { data: currentMarketCap, error: marketCapError, isLoading: marketCapLoading } = useReadContract({
     address: bondingCurveAddress,
     abi: BondingCurveABI,
     functionName: 'getCurrentMarketCap',
     query: {
       enabled: !!bondingCurveAddress,
       refetchInterval: 10000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   });
 
   // Read target market cap
-  const { data: targetMarketCap } = useReadContract({
+  const { data: targetMarketCap, error: targetError, isLoading: targetLoading } = useReadContract({
     address: bondingCurveAddress,
     abi: BondingCurveABI,
     functionName: 'targetMarketCap',
     query: {
       enabled: !!bondingCurveAddress,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   });
 
   // Read graduation status
-  const { data: graduated } = useReadContract({
+  const { data: graduated, error: graduatedError, isLoading: graduatedLoading } = useReadContract({
     address: bondingCurveAddress,
     abi: BondingCurveABI,
     functionName: 'graduated',
     query: {
       enabled: !!bondingCurveAddress,
       refetchInterval: 30000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   });
 
   // Read token reserves
-  const { data: tokenReserve } = useReadContract({
+  const { data: tokenReserve, error: tokenError, isLoading: tokenLoading } = useReadContract({
     address: bondingCurveAddress,
     abi: BondingCurveABI,
     functionName: 'tokenReserve',
     query: {
       enabled: !!bondingCurveAddress,
       refetchInterval: 10000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   });
 
   // Read virtual USDC reserve
-  const { data: virtualUSDCReserve } = useReadContract({
+  const { data: virtualUSDCReserve, error: usdcError, isLoading: usdcLoading } = useReadContract({
     address: bondingCurveAddress,
     abi: BondingCurveABI,
     functionName: 'virtualUSDCReserve',
     query: {
       enabled: !!bondingCurveAddress,
       refetchInterval: 10000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   });
 
@@ -128,6 +140,51 @@ export function useBondingCurve(bondingCurveAddress: `0x${string}` | undefined) 
     }
   };
 
+  // Aggregate loading and error states
+  const isLoading = priceLoading || marketCapLoading || targetLoading || graduatedLoading || tokenLoading || usdcLoading;
+  const hasError = !!(priceError || marketCapError || targetError || graduatedError || tokenError || usdcError);
+  const errors = {
+    price: priceError,
+    marketCap: marketCapError,
+    target: targetError,
+    graduated: graduatedError,
+    token: tokenError,
+    usdc: usdcError,
+  };
+
+  // Calculate graduation progress safely
+  const graduationProgress = currentMarketCap && targetMarketCap 
+    ? Math.min(Number(currentMarketCap) / Number(targetMarketCap) * 100, 100) // Cap at 100%
+    : 0;
+
+  // Calculate USDC needed to reach graduation
+  const calculateUsdcNeededForGraduation = () => {
+    if (!currentMarketCap || !targetMarketCap || !tokenReserve || !virtualUSDCReserve) {
+      return '0';
+    }
+    
+    const currentMC = BigInt(currentMarketCap);
+    const targetMC = BigInt(targetMarketCap);
+    
+    if (currentMC >= targetMC) {
+      return '0'; // Already graduated or at target
+    }
+    
+    // This is a simplified calculation
+    // In reality, it would require solving the bonding curve equation
+    const mcGap = targetMC - currentMC;
+    const currentPrice = virtualUSDCReserve && tokenReserve && BigInt(tokenReserve) > 0
+      ? (BigInt(virtualUSDCReserve) * BigInt(1e18)) / BigInt(tokenReserve)
+      : BigInt(0);
+    
+    // Rough estimate: gap / current price
+    const estimatedUsdc = currentPrice > 0 
+      ? (mcGap * BigInt(1e6)) / currentPrice 
+      : BigInt(0);
+    
+    return formatUnits(estimatedUsdc, 6);
+  };
+
   return {
     currentPrice: currentPrice ? formatUnits(currentPrice as bigint, 6) : '0',
     currentMarketCap: currentMarketCap ? formatUnits(currentMarketCap as bigint, 6) : '0',
@@ -135,11 +192,13 @@ export function useBondingCurve(bondingCurveAddress: `0x${string}` | undefined) 
     graduated: graduated || false,
     tokenReserve: tokenReserve ? formatUnits(tokenReserve as bigint, 18) : '0',
     virtualUSDCReserve: virtualUSDCReserve ? formatUnits(virtualUSDCReserve as bigint, 6) : '0',
-    graduationProgress: currentMarketCap && targetMarketCap 
-      ? Number(currentMarketCap) / Number(targetMarketCap) * 100 
-      : 0,
+    graduationProgress,
     calculateBuyReturn,
     calculateSellReturn,
+    calculateUsdcNeededForGraduation,
+    isLoading,
+    hasError,
+    errors,
   };
 }
 
