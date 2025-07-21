@@ -179,13 +179,16 @@ contract BondingCurve is IBondingCurve, ReentrancyGuard {
         uint256 totalSupply = IERC20(token).totalSupply();
         if (tokenReserve == 0) return 0;
 
+        // Calculate circulating supply (tokens that have been sold from the bonding curve)
+        uint256 circulatingSupply = totalSupply - tokenReserve;
+
         // Current price in USDC (6 decimals) per token
         uint256 currentPrice = (virtualUSDCReserve * PRECISION) / tokenReserve;
 
-        // Market cap = total supply * price
-        // totalSupply has 18 decimals, price has 6 decimals precision
+        // Market cap = circulating supply * price
+        // circulatingSupply has 18 decimals, price has 6 decimals precision
         // Result should be in USDC (6 decimals)
-        return (totalSupply * currentPrice) / PRECISION;
+        return (circulatingSupply * currentPrice) / PRECISION;
     }
 
     function canGraduate() public view returns (bool) {

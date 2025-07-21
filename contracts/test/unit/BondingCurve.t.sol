@@ -45,6 +45,10 @@ contract BondingCurveTest is BaseTest {
         uint256 initialVirtualUsdc = curve.virtualUSDCReserve();
         assertGt(initialVirtualUsdc, 0);
         assertEq(curve.tokenReserve(), TOKEN_SUPPLY);
+        
+        // Check initial market cap is 0 (no tokens in circulation yet)
+        uint256 initialMarketCap = curve.getCurrentMarketCap();
+        assertEq(initialMarketCap, 0, "Initial market cap should be 0");
     }
 
     function test_Buy() public {
@@ -150,16 +154,22 @@ contract BondingCurveTest is BaseTest {
 
     function test_MarketCapCalculation() public {
         uint256 initialMarketCap = curve.getCurrentMarketCap();
+        assertEq(initialMarketCap, 0, "Initial market cap should be 0");
 
         // Buy tokens to increase market cap
         vm.startPrank(user1);
         usdc.approve(address(curve), 1000e6);
-        curve.buy(1000e6);
+        uint256 tokensBought = curve.buy(1000e6);
         vm.stopPrank();
 
         uint256 newMarketCap = curve.getCurrentMarketCap();
+        uint256 currentPrice = curve.getCurrentPrice();
+        
+        // Market cap should equal circulating supply * price
+        uint256 expectedMarketCap = (tokensBought * currentPrice) / 1e18;
 
-        assertGt(newMarketCap, initialMarketCap);
+        assertGt(newMarketCap, initialMarketCap, "Market cap should increase after buy");
+        assertEq(newMarketCap, expectedMarketCap, "Market cap should equal circulating supply * price");
     }
 
     function test_Graduation() public {
@@ -290,6 +300,47 @@ contract BondingCurveTest is BaseTest {
         vm.expectRevert(IBondingCurve.AlreadyGraduated.selector);
         curve.buy(1_000_000e6);
         vm.stopPrank();
+    }
+
+    function test_MarketCapProgressesToGraduation() public {
+        // Start with 0 market cap
+        assertEq(curve.getCurrentMarketCap(), 0, "Should start with 0 market cap");
+        
+        // Buy tokens progressively and check market cap increases
+        uint256[] memory buyAmounts = new uint256[](5);
+        buyAmounts[0] = 100e6;      // $100
+        buyAmounts[1] = 1000e6;     // $1,000
+        buyAmounts[2] = 10000e6;    // $10,000
+        buyAmounts[3] = 100000e6;   // $100,000
+        buyAmounts[4] = 1000000e6;  // $1,000,000
+        
+        uint256 cumulativeTokensBought;
+        uint256 previousMarketCap = 0;
+        
+        for (uint i = 0; i < buyAmounts.length; i++) {
+            vm.startPrank(user1);
+            usdc.approve(address(curve), buyAmounts[i]);
+            uint256 tokensBought = curve.buy(buyAmounts[i]);
+            vm.stopPrank();
+            
+            cumulativeTokensBought += tokensBought;
+            uint256 currentMarketCap = curve.getCurrentMarketCap();
+            uint256 currentPrice = curve.getCurrentPrice();
+            
+            // Verify market cap calculation
+            uint256 expectedMarketCap = (cumulativeTokensBought * currentPrice) / 1e18;
+            assertEq(currentMarketCap, expectedMarketCap, "Market cap mismatch");
+            
+            // Market cap should increase with each buy
+            assertGt(currentMarketCap, previousMarketCap, "Market cap should increase");
+            previousMarketCap = currentMarketCap;
+            
+            // Check if we can graduate
+            if (currentMarketCap >= TARGET_MARKET_CAP) {
+                assertTrue(curve.canGraduate(), "Should be able to graduate");
+                break;
+            }
+        }
     }
 
     function test_ConstantProductFormula() public {

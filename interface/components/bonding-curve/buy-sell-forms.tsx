@@ -6,14 +6,17 @@ import { formatUnits } from 'viem';
 import { useBondingCurve, useBondingCurveBuy, useBondingCurveSell, useUSDCApproval } from '@/lib/hooks/use-bonding-curve';
 import { useTokenBalance } from '@/lib/hooks/use-direct-pool';
 import BondingCurveABI from '@/lib/contracts/BondingCurve.json';
+import { useRouter } from 'next/navigation';
 
 interface BuySellFormsProps {
   bondingCurveAddress: `0x${string}`;
   usdcAddress: `0x${string}`;
   tokenSymbol: string;
+  directPoolAddress?: `0x${string}`;
 }
 
-export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: BuySellFormsProps) {
+export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol, directPoolAddress }: BuySellFormsProps) {
+  const router = useRouter();
   const { address } = useAccount();
   const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy');
   const [buyAmount, setBuyAmount] = useState('');
@@ -103,6 +106,17 @@ export function BuySellForms({ bondingCurveAddress, usdcAddress, tokenSymbol }: 
       <div className="bg-yellow-50 dark:bg-yellow-900/50 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
         <p className="text-yellow-800 dark:text-yellow-400 font-medium">This bonding curve has graduated!</p>
         <p className="text-yellow-700 dark:text-yellow-300 text-sm mt-1">Trading has moved to the Direct Pool.</p>
+        {directPoolAddress && (
+          <button
+            onClick={() => router.push(`/project/${directPoolAddress}`)}
+            className="mt-3 w-full px-4 py-2 bg-yellow-600 dark:bg-yellow-500 text-white font-medium rounded-md hover:bg-yellow-700 dark:hover:bg-yellow-600 transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            Go to Direct Pool
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        )}
       </div>
     );
   }
