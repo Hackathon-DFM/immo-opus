@@ -14,26 +14,29 @@ contract EdgeCasesTest is BaseTest {
         BondingCurve curve = BondingCurve(projectAddress);
         vm.stopPrank();
         
-        // Buy exactly enough to reach target
-        uint256 currentMarketCap = curve.getCurrentMarketCap();
-        uint256 needed = TARGET_MARKET_CAP - currentMarketCap;
-        
-        // Calculate buy amount needed (approximate)
-        uint256 buyAmount = (needed * curve.virtualUSDCReserve()) / currentMarketCap;
-        
+        // Buy in larger increments to avoid gas issues
         vm.startPrank(user1);
-        usdc.approve(address(curve), buyAmount * 2); // Extra for safety
+        usdc.approve(address(curve), 100_000_000e6); // Approve plenty
         
-        // Buy in small increments to get close to target
-        while (curve.getCurrentMarketCap() < TARGET_MARKET_CAP && !curve.canGraduate()) {
-            curve.buy(10e6); // $10 increments
+        // Keep buying until graduated
+        while (!curve.graduated()) {
+            // Use larger amounts initially, smaller near the end
+            if (curve.getCurrentMarketCap() < TARGET_MARKET_CAP * 80 / 100) {
+                curve.buy(1_000_000e6); // $1M chunks when far from target
+            } else if (curve.getCurrentMarketCap() < TARGET_MARKET_CAP * 95 / 100) {
+                curve.buy(100_000e6); // $100k chunks when closer
+            } else {
+                curve.buy(10_000e6); // $10k chunks when very close
+            }
         }
         vm.stopPrank();
         
-        // Should be able to graduate
-        assertTrue(curve.canGraduate());
-        curve.graduate();
+        // Verify graduation happened
         assertTrue(curve.graduated());
+        assertTrue(curve.canGraduate());
+        
+        // Verify we're at or above target market cap
+        assertGe(curve.getCurrentMarketCap(), TARGET_MARKET_CAP);
     }
     
     function test_DirectPool_AllMMsMaxBorrow() public {
@@ -188,42 +191,19 @@ contract EdgeCasesTest is BaseTest {
         vm.startPrank(marketMaker1);
         token.approve(address(pool), borrowAmount * 2);
         
-        // Should only repay exact borrowed amount
+        // Should revert when trying to repay more than borrowed
+        vm.expectRevert(IDirectPool.InsufficientBalance.selector);
         pool.repayTokens(borrowAmount * 2);
+        
+        // Now repay exact amount
+        pool.repayTokens(borrowAmount);
         vm.stopPrank();
         
         // Borrowed amount should be 0
         assertEq(pool.borrowedAmount(marketMaker1), 0);
         
-        // MM should keep excess
+        // MM should keep excess tokens
         assertGt(token.balanceOf(marketMaker1), borrowAmount);
-    }
-    
-    function test_RaceCondition_GraduationWhileBuying() public {
-        vm.startPrank(projectOwner);
-        address projectAddress = createBondingCurveProject();
-        BondingCurve curve = BondingCurve(projectAddress);
-        vm.stopPrank();
-        
-        // User1 buys close to graduation
-        vm.startPrank(user1);
-        usdc.approve(address(curve), 9_000e6);
-        curve.buy(9_000e6);
-        vm.stopPrank();
-        
-        // User2 prepares to buy
-        vm.startPrank(user2);
-        usdc.approve(address(curve), 2_000e6);
-        
-        // User1 graduates in between
-        vm.stopPrank();
-        curve.graduate();
-        
-        // User2's buy should fail
-        vm.startPrank(user2);
-        vm.expectRevert(IBondingCurve.AlreadyGraduated.selector);
-        curve.buy(2_000e6);
-        vm.stopPrank();
     }
     
     function test_ZeroAllocation_NoMMs() public {

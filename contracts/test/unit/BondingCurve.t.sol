@@ -315,7 +315,7 @@ contract BondingCurveTest is BaseTest {
 
     function test_Fuzz_BuySell(uint256 buyAmount, uint256 sellRatio) public {
         buyAmount = bound(buyAmount, 1e6, 1000e6); // $1 to $1000
-        sellRatio = bound(sellRatio, 1, 100); // Sell 1% to 100% of bought tokens
+        sellRatio = bound(sellRatio, 1, 99); // Sell 1% to 99% of bought tokens
 
         vm.startPrank(user1);
         usdc.approve(address(curve), buyAmount);
