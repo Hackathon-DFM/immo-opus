@@ -8,6 +8,7 @@ import { usePonderProjectsByOwner } from '../../lib/hooks/use-ponder-projects';
 import { useMarketMakers } from '../../lib/hooks/use-market-makers';
 import { Project } from '../../lib/graphql/client';
 import { useTokenMetadata } from '../../lib/hooks/use-token-metadata';
+import { useBondingCurve } from '../../lib/hooks/use-bonding-curve';
 
 
 function StatusBadge({ status }: { status: string }) {
@@ -40,8 +41,27 @@ function ProjectCard({
   // Fetch token metadata in real-time
   const { data: tokenMetadata } = useTokenMetadata(project.tokenAddress as `0x${string}`);
 
-  // Only use market makers hook for DirectPool projects
-  const isDirectPool = project.mode === 'DIRECT_POOL';
+  // Use market makers hook for DirectPool projects AND graduated BondingCurve projects
+  const isDirectPool = project.mode === 'DIRECT_POOL' || (project.mode === 'BONDING_CURVE' && project.graduated);
+
+  // Fetch real-time bonding curve data for non-graduated bonding curve projects
+  const { 
+    currentPrice: realTimePrice, 
+    currentMarketCap: realTimeMarketCap, 
+    targetMarketCap: realTimeTargetCap,
+    graduationProgress: realTimeProgress,
+    isLoading: isBondingCurveLoading,
+    error: bondingCurveError
+  } = !isDirectPool && project.mode === 'BONDING_CURVE' 
+    ? useBondingCurve(project.address as `0x${string}`) 
+    : { 
+        currentPrice: null, 
+        currentMarketCap: null, 
+        targetMarketCap: null,
+        graduationProgress: 0,
+        isLoading: false,
+        error: null
+      };
   
   const { 
     marketMakers, 
@@ -120,13 +140,14 @@ function ProjectCard({
 
   // Calculate derived data
   const borrowedAmount = totalLiquidity - availableLiquidity;
-  const status = project.graduated ? 'Graduated' : 
-                 project.isFinalized ? 'Active' : 'MM Registration';
+  const status = project.graduated && project.mode === 'BONDING_CURVE' ? 'Graduated' :
+                 project.isFinalized || (project.graduated && isDirectPool) ? 'Active' : 
+                 'MM Registration';
   
   const timeLimit = project.borrowTimeLimit ? 
     Math.floor(project.borrowTimeLimit / (24 * 60 * 60)) : 0; // Convert seconds to days
 
-  if (isLoadingMMs) {
+  if (isLoadingMMs || isBondingCurveLoading) {
     return (
       <div className="bg-white dark:bg-gray-900 shadow rounded-lg p-6">
         <div className="space-y-4">
@@ -158,13 +179,15 @@ function ProjectCard({
       {/* Project Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {tokenMetadata?.name || 'Loading...'}
           </h3>
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {tokenMetadata?.symbol || '...'} • {project.mode.replace('_', ' ')}
-
+            {tokenMetadata?.symbol || '...'} • {
+              project.mode === 'BONDING_CURVE' && project.graduated 
+                ? 'Direct Pool (Graduated)'
+                : project.mode.replace('_', ' ')
+            }
           </p>
           <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-1">
             {project.address.slice(0, 6)}...{project.address.slice(-4)}
@@ -172,6 +195,24 @@ function ProjectCard({
         </div>
         <StatusBadge status={status} />
       </div>
+
+      {/* Graduation Transition Message */}
+      {project.mode === 'BONDING_CURVE' && project.graduated && (
+        <div className="bg-green-50 dark:bg-green-900/50 border border-green-200 dark:border-green-700 rounded-lg p-4 mb-4">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm">
+              <p className="font-medium text-green-800 dark:text-green-300 mb-1">🎉 Congratulations! Your project has graduated!</p>
+              <p className="text-green-700 dark:text-green-400">
+                This project started as a Bonding Curve and has successfully reached its target market cap. 
+                It is now operating as a Direct Pool where you can manage Market Makers and monitor their trading activity.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Project Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -205,28 +246,25 @@ function ProjectCard({
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Current Price</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {project.currentPrice ? `$${Number(formatUnits(BigInt(project.currentPrice), 6)).toFixed(4)}` : '$0'}
+                {realTimePrice ? `$${Number(formatUnits(realTimePrice, 6)).toFixed(4)}` : '$0'}
               </p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Market Cap</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {project.currentMarketCap ? `$${Number(formatUnits(BigInt(project.currentMarketCap), 6)).toLocaleString()}` : '$0'}
+                {realTimeMarketCap ? `$${Number(formatUnits(realTimeMarketCap, 6)).toLocaleString()}` : '$0'}
               </p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Target Cap</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {project.targetMarketCap ? `$${Number(formatUnits(BigInt(project.targetMarketCap), 6)).toLocaleString()}` : '$0'}
+                {realTimeTargetCap ? `$${Number(formatUnits(realTimeTargetCap, 6)).toLocaleString()}` : '$0'}
               </p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Progress</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {project.currentMarketCap && project.targetMarketCap 
-                  ? `${Math.round((Number(project.currentMarketCap) / Number(project.targetMarketCap)) * 100)}%`
-                  : '0%'
-                }
+                {realTimeProgress !== undefined ? `${Math.round(realTimeProgress)}%` : '0%'}
               </p>
             </div>
           </>
@@ -441,26 +479,23 @@ function ProjectCard({
       </div>
       )}
 
-      {/* Bonding Curve Info Section */}
-      {!isDirectPool && (
+      {/* Bonding Curve Info Section - Only for non-graduated bonding curves */}
+      {project.mode === 'BONDING_CURVE' && !project.graduated && (
         <div className="border-t dark:border-gray-700 pt-4">
           <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">Bonding Curve Status</h4>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Graduation Progress</span>
               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {project.currentMarketCap && project.targetMarketCap 
-                  ? `${Math.round((Number(project.currentMarketCap) / Number(project.targetMarketCap)) * 100)}%`
-                  : '0%'
-                }
+                {realTimeProgress !== undefined ? `${Math.round(realTimeProgress)}%` : '0%'}
               </span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
               <div 
                 className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full transition-all duration-300"
                 style={{ 
-                  width: project.currentMarketCap && project.targetMarketCap 
-                    ? `${Math.min(100, Math.round((Number(project.currentMarketCap) / Number(project.targetMarketCap)) * 100))}%`
+                  width: realTimeProgress !== undefined 
+                    ? `${Math.min(100, Math.round(realTimeProgress))}%`
                     : '0%'
                 }}
               />
@@ -479,21 +514,11 @@ function ProjectCard({
       {/* Project Actions */}
       <div className="border-t pt-4 mt-4">
         <div className="flex gap-2">
-
           <button 
             onClick={() => router.push(`/project/${project.address}`)}
             className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
-
             View Details
           </button>
-          <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300">
-            Download Report
-          </button>
-          {project.mode === 'BONDING_CURVE' && status !== 'Graduated' && (
-            <button className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300">
-              Check Graduation
-            </button>
-          )}
         </div>
       </div>
     </div>
@@ -512,15 +537,19 @@ export default function PODashboard() {
   const filteredProjects = projects.filter(project => {
     if (filter === 'all') return true;
     
-    const status = project.graduated ? 'graduated' : 
-                   project.isFinalized ? 'active' : 'mm-registration';
+    // For graduated bonding curves, they should be treated based on their direct pool status
+    const isGraduatedBondingCurve = project.mode === 'BONDING_CURVE' && project.graduated;
+    const status = project.graduated && project.mode === 'BONDING_CURVE' ? 'graduated' :
+                   project.isFinalized || isGraduatedBondingCurve ? 'active' : 'mm-registration';
     
     return filter === status;
   });
 
   // Calculate totals from real data
   const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.isFinalized && !p.graduated).length;
+  const activeProjects = projects.filter(p => 
+    (p.isFinalized && !p.graduated) || (p.mode === 'BONDING_CURVE' && p.graduated)
+  ).length;
   const totalLiquidity = projects.reduce((sum, p) => 
     sum + (p.totalLiquidity ? Number(formatUnits(BigInt(p.totalLiquidity), 6)) : 0), 0
   );
