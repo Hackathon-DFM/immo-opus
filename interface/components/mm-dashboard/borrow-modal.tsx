@@ -76,7 +76,7 @@ export function BorrowModal({ projectAddress, isOpen, onClose }: BorrowModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in-backdrop">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in-backdrop">
       <div className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto animate-fade-in-scale">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Borrow Tokens</h2>
