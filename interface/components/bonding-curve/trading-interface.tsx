@@ -9,13 +9,17 @@ interface TradingInterfaceProps {
   usdcAddress: `0x${string}`;
   tokenName: string;
   tokenSymbol: string;
+  graduated?: boolean;
+  directPoolAddress?: `0x${string}`;
 }
 
 export function TradingInterface({ 
   bondingCurveAddress, 
   usdcAddress, 
   tokenName, 
-  tokenSymbol 
+  tokenSymbol,
+  graduated,
+  directPoolAddress
 }: TradingInterfaceProps) {
   return (
     <div className="max-w-7xl mx-auto">
@@ -44,6 +48,7 @@ export function TradingInterface({
             bondingCurveAddress={bondingCurveAddress}
             usdcAddress={usdcAddress}
             tokenSymbol={tokenSymbol}
+            directPoolAddress={directPoolAddress}
           />
         </div>
       </div>
