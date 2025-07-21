@@ -10,6 +10,7 @@ const navItems = [
   { href: '/create', label: 'Create Project' },
   { href: '/mm-dashboard', label: 'MM Dashboard' },
   { href: '/po-dashboard', label: 'PO Dashboard' },
+  { href: '/faucet', label: 'Faucet' },
 ];
 
 export function Navigation() {

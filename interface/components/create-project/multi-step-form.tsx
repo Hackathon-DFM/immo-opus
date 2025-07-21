@@ -65,6 +65,7 @@ export function MultiStepForm() {
     isNewToken: true,
     mode: PoolMode.DIRECT_POOL,
     initialPrice: DEFAULT_VALUES.INITIAL_PRICE,
+    targetMarketCap: DEFAULT_VALUES.TARGET_MARKET_CAP,
     borrowTimeLimit: DEFAULT_VALUES.BORROW_TIME_LIMIT,
   });
 
@@ -140,10 +141,6 @@ export function MultiStepForm() {
       return;
     }
 
-    if (formData.description.length < 10) {
-      setError('Description must be at least 10 characters');
-      return;
-    }
 
     try {
       setError(undefined);
@@ -245,7 +242,7 @@ export function MultiStepForm() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-20">
-        <div className="flex items-center justify-between relative">
+        <div className="flex items-center justify-center relative max-w-4xl mx-auto">
           {STEP_CONFIG.map((stepConfig, index) => {
             const stepNumber = index + 1;
             const isActive = stepNumber === currentStep;
@@ -253,7 +250,7 @@ export function MultiStepForm() {
             const isPending = stepNumber > currentStep;
             
             return (
-              <div key={stepNumber} className="flex items-center flex-1">
+              <div key={stepNumber} className="flex items-center">
                 <div className="relative">
                   {/* Active step pulse animation */}
                   {isActive && (
@@ -300,7 +297,7 @@ export function MultiStepForm() {
                 
                 {/* Progress connector */}
                 {stepNumber < TOTAL_STEPS && (
-                  <div className="flex-1 mx-3 mt-6">
+                  <div className="w-16 sm:w-24 mx-3">
                     <div className="h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ease-out ${
